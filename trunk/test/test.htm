@@ -3,15 +3,80 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title>无标题页</title>
-    <script type="text/javascript" src="../build/js/core.js"></script>
+    <style type="text/css">
+    #test{border:1px solid #cf9;background:#efd;width:240px;height:180px;}
+    .view{border:1px solid #fc9;background:#fed;width:240px;height:180px;}
+    .red{padding-left:8px;color:#f00;}
+    </style>
+    <script type="text/javascript" src="../build/js/jui.js"></script>
+    <script type="text/javascript" src="../build/js/whiz.js"></script>
+</head>
+<body>
+    <div id="test">
+        <a href="http://fdream.net" title="fdream.net">fdream.net</a>
+    </div>
+    <div id="div2" class="view">
+        <a href="http://fdream.net" title="fdream.net">fdream.net</a>
+        <div class="red">
+            <a href="http://pplive.com" title="pplive.com">pplive.com</a>
+        </div>
+        <a href="/" title="/">/</a><br />
+        <a href="http://pp.tv" title="pp.tv">pp.tv</a><br />
+        <a href="http://google.com" title="pp.tv">google'google'.com</a>
+        <form name="survey" method="post" action="/">
+            <input type="text" name="user" disabled="disabled" />
+        </form>
+    </div>
     <script type="text/javascript">
+    <!--
         //alert('as'.test());
         //alert(Array.slice([1,2,3,4,5,6], 2));
         //alert([ScriptEngine(), ScriptEngineMajorVersion(), ScriptEngineMinorVersion(), ScriptEngineBuildVersion()].join('.'));
-        alert(jui.ua.gecko);
+        //$('test').hide();
+        //alert($.version);
+        //JUI.noConfilict();
+        //var j = JUI.noConfilict(true);
+        //alert(j.type(j));
+        //j('test').hide();
+        //alert($('test'));
+        //$.whiz('test');
+        //$.whiz('div#test');
+        //$.whiz('div.test');
+        //$.whiz('div[test^="a b"]');
+        //$.whiz('div:root');
+        //$.whiz('div:ntn-child(n)');
+        //$.whiz('#abc div:ntn-child(n)');
+        //$.whiz('form:first-child[type=button]:not(button)[lang|=en]');
+        //whiz('#abc div:ntn-child(n)');
+        //whiz('div#abc a:ntn-child(n)');
+        //whiz('#abc a:ntn-child(n)[href^=/]');
+        //whiz('#abc a:ntn-child(n)[href^="/"], div.w120 span');
+        //whiz('#test > a:ntn-child(n)[href^="/"], div.w120 dl.top_10 dd span.red');
+        //whiz('#test > a[href^="http://"]');
+        //whiz('#test > a[href]');
+        //whiz('.view > a[href^="http://"]');
+        //whiz('.view > a');
+        //whiz('.red + a');
+        //whiz('.red ~ a');
+        //whiz('input');
+        //whiz('.view > a:last');
+        //whiz('.view > a:odd');
+        //whiz('.view > a:even');
+        //whiz('.view > a:in(1)');
+        //whiz('.view > a:nth(2n+1)');
+        //whiz('.view > a:contains("google\'google\'")');
+        //whiz('div#div2 > a:contains("google\'google\'")');
+        //whiz('div:not(.view)');
+        //whiz('#div2.view');
+        //whiz('div:nth-child(odd)');
+        //whiz('div:nth-child(3n+2)');
+        //whiz('div:nth-child(3)');
+        //whiz('div:nth-child(3n)');
+        //whiz('div:nth-child(3n+)');
+        //whiz('div:nth-child(3n-2)');
+        //whiz('div:nth-child(-3n-2)');
+        whiz('div#div2');
+    -->
     </script>
-</head>
-<body>
-
 </body>
 </html>
