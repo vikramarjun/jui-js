@@ -25,9 +25,10 @@ var whiz = function(selector, context, firstOnly) {
         return [];
     }
 
+    this.uid = 0;
+
     var lastIndex = 0,
         results = [],
-        foundCache = [],
         tagRE = /^((?:-?[_a-z]+[\w-]*)|\*)/i, // tag must be the first, or it will be *
         nthRE = /^(?:(?:([-]?\d*)(n{1}))?([-+]?\d*)|(odd|even))$/, // supports an+b, b, an, odd, even
     //quick = /^#?([\w-]+)/i,
@@ -37,26 +38,7 @@ var whiz = function(selector, context, firstOnly) {
             attribute: /^\[([a-z]+\w*)+([~\|\^\$\*!]?=)?['"]?([^\]]*?)['"]?\]/i,
             pseudo: /^:([\-\w]+)(?:\(['"]?(.+?)['"]?\))*/,
             combinator: /^\s*((?:[>+~\s,])|$)\s*/    // comma for multi-selectors
-        },
-        attributeAlias = {
-            'class': 'className',
-            'html': 'innerHTML',
-            'for': 'htmlFor'
         };
-
-    // remove found cache attribute
-    function clearFoundCache() {
-        var i, len;
-
-        for (i = 0, len = foundCache.length; i < len; ++i) {
-            try { // IE no like delete
-                delete foundCache[i]._found;
-            } catch (e) {
-                foundCache[i].removeAttribute('_found');
-            }
-        }
-        foundCache = [];
-    }
 
     function parseToken(s) {
         var m = null, ret = null;
@@ -94,6 +76,7 @@ var whiz = function(selector, context, firstOnly) {
                 break;
             }
             else {
+                //console.log(f);
                 singleSelector.filters.push(f);
             }
         }
@@ -134,21 +117,16 @@ var whiz = function(selector, context, firstOnly) {
         var ret = false;
 
         if (node && node.tagName) {
-            var id = node.id || ('_whiz_' + (whiz.uid++));
+            var id = node.id || ('_whiz_' + (this.uid++));
             node.id = id;
-            ret = node === query('#' + id + selector, [document])[0];
+            ret = node === query(selector, [document], false, '#' + id)[0];
         }
 
         return ret;
     }
 
-    var nthCache = {};
     // parse nth expression
-    function parseNth(expr) {
-        if (nthCache[expr]) {
-            return nthCache[expr];
-        }
-
+    function parseExpression(expr) {
         var m, a, b;
 
         m = expr.match(nthRE);
@@ -169,16 +147,16 @@ var whiz = function(selector, context, firstOnly) {
                 break;
         }
 
-        return (nthCache[expr] = { a: a, b: b });
+        return [a, b];
     }
 
     // judge if matches with the nth expression
     function getNth(node, expr, tag, reverse) {
         var m, a, b, siblings, ret = false, i, len;
 
-        m = parseNth(expr);
-        a = m.a;
-        b = m.b;
+        m = parseExpression(expr);
+        a = m[0];
+        b = m[1];
 
         siblings = node.parentNode.children;
 
@@ -219,8 +197,6 @@ var whiz = function(selector, context, firstOnly) {
         '~=': function(attr, val) {
             // value is seperated by space, one of them is equal to val
             return new RegExp('(?:^|\\s+)' + escapeRegExp(val) + '(?:\\s+|$)').test(attr);
-            //var ret = (attr || '').indexOf(val);
-            //return ret > -1 ? (ret > 0 ? attr[ret - 1] == ' ' : attr[val.length] == ' ') : false;
         },
         '!=': function(attr, val) {
             // value is not equal to val
@@ -229,18 +205,16 @@ var whiz = function(selector, context, firstOnly) {
         },
         '^=': function(attr, val) {
             // value is started with val
-            //return new RegExp('^' + escapeRegExp(val)).test(attr);
-            return attr && attr.indexOf(val) == 0;
+            return new RegExp('^' + escapeRegExp(val)).test(attr);
         },
         '$=': function(attr, val) {
             // value is ended with val
-            //return new RegExp(escapeRegExp(val) + '$').test(attr);
-            return attr && attr.indexOf(val) == (attr.length - val.length);
+            return new RegExp(escapeRegExp(val) + '$').test(attr);
         },
         '*=': function(attr, val) {
             // value contains val(string)
-            //return new RegExp(escapeRegExp(val)).test(attr);
-            return attr && attr.indexOf(val) > -1;
+            //return attr.indexOf(val) > -1;
+            return new RegExp(escapeRegExp(val)).test(attr);
         },
         '|=': function(attr, val) {
             // value is seperated by hyphen, one of them is started with val
@@ -334,8 +308,8 @@ var whiz = function(selector, context, firstOnly) {
             return i % 2 === 1;
         },
         'nth': function(node, i, expr) {
-            var m = parseNth(expr);
-            return m.a === 0 ? i === m.b : !(i % m.a == m.b);
+            var m = parseExpression(expr);
+            return m[0] === 0 ? i === m[1] : !((i - m[1]) % m[0]);
         },
         // only a part of them
         'gt': function(nodes, val) {
@@ -362,24 +336,14 @@ var whiz = function(selector, context, firstOnly) {
     };
 
     var filters = {
-        id: function(item, match, ctx) {
-            var p = item, ret = [];
-            while (p = p.parentNode) {
-                if (p == ctx) {
-                    ret = [item];
-                    break;
-                }
-            }
-            return ret;
-            /*
+        id: function(items, match) {
             var len = items.length, results = [];
             for (var i = 0; i < len; i++) {
-            if (items[i].getAttribute('id') == match[1]) {
-            results.push(items[i]);
-            }
+                if (items[i].getAttribute('id') == match[1]) {
+                    results.push(items[i]);
+                }
             }
             return results;
-            */
         },
         klass: function(items, match) {
             var len = items.length, results = [];
@@ -391,15 +355,14 @@ var whiz = function(selector, context, firstOnly) {
             return results;
         },
         attribute: function(items, match) {
-            var len = items.length, results = [], key;
+            var len = items.length, results = [];
             for (var i = 0; i < len; i++) {
-                key = attributeAlias[match[1]] || match[1];
                 if (match[2]) {
-                    attributes[match[2]](items[i][key] || items[i].getAttribute(key), match[3]) && results.push(items[i]);
+                    attributes[match[2]](items[i].getAttribute(match[1]), match[3]) && results.push(items[i]);
                     //new RegExp(attributes[match[2]](match[3])).test(items[i].getAttribute(match[1])) && results.push(items[i]);
                 }
                 else {
-                    (items[i][key] || items[i].getAttribute(key)) != null && results.push(items[i]);
+                    items[i].getAttribute(match[1]) && results.push(items[i]);
                 }
             }
             return results;
@@ -424,67 +387,43 @@ var whiz = function(selector, context, firstOnly) {
         }
     };
 
-    function filter(items, filter, context) {
-        var results = filters[filter.type](items, filter.match, context);
+    function filter(items, filter) {
+        var results = filters[filter.type](items, filter.match);
         return results;
     };
 
     var combinators = {
         ' ': function(node, tag) {
-            var innerContexts, i, len, n;
-
-            innerContexts = node.getElementsByTagName(node.tagName);
-            for (i = 0, len = innerContexts.length; i < len; i++) {
-                if (innerContexts[i]._found) {
-                    continue;
-                }
-
-                innerContexts[i]._found = true;
-                foundCache.push(innerContexts[i]);
-            }
-
             return nodesToArray(node.getElementsByTagName(tag));
         },
         '>': function(node, tag) {
-            var children, i, len, n, ret = [];
-            children = node.children;
-            for (var i = 0, len = children.length; i < len; i++) {
-                n = children[i];
-                (n.tagName == tag) && ret.push(n);
+            var ns = node.children;
+            len, i, results = [];
+            for (var i = 0, len = ns.length; i < len; i++) {
+                (ns[i].tagName == tag) && results.push(ns[i]);
             }
-            return ret;
-            /*
-            var children, i, l, n, ret = [];
-            children = node.getElementsByTagName(tag);
-            for (var i = 0, l = children.length; i < l; i++) {
-            n = children[i];
-            (n.parentNode == node) && ret.push(n);
-            }
-            return ret;
-            */
+            return results;
         },
         '+': function(node, tag) {
-            var ret = [];
-            while (node = node.nextSibling) {
-                if (node.nodeType === 1) {
-                    if (node.tagName == tag) {
-                        ret = [node];
-                    }
+            var n = node.nextSibling, ret = [];
+            while (n) {
+                if (n.nodeType === 1) {
+                    ret = n.tagName == tag ? [n] : [];
                     break;
                 }
+                n = n.nextSibling;
             }
             return ret;
         },
         '~': function(node, tag) {
-            var ret = [];
-            while (node = node.nextSibling) {
-                if (node.nodeType === 1 && !node._found) {
-                    node._found = true;
-                    foundCache.push(node);
-                    node.tagName == tag && ret.push(node);
+            var n = node.nextSibling, results = [];
+            while (n) {
+                if (n.tagName == tag) {
+                    results.push(n);
                 }
+                n = n.nextSibling;
             }
-            return ret;
+            return results;
         }
     };
 
@@ -494,23 +433,16 @@ var whiz = function(selector, context, firstOnly) {
         filters = selector.filters,
         filLen = filters.length;
         for (j = 0; j < conLen; j++) {
-            if (contexts[j]._found) {
-                continue;
-            }
-
             combinator == '' && (combinator = ' ');
-            if (filLen && filters[0].type == 'id') {
+            if (filLen && filters[0].type == 'id' && contexts[j] == document) {
                 n = document.getElementById(filters[0].match[1]);
                 if (!n || (selector.tag != '*' && n.tagName != selector.tag)) {
                     ret = [];
                 }
                 else {
-                    ret = filter(n, filters[0], contexts[j]);
-                    if (ret.length > 0) {
-                        j = conLen;
-                    }
-                    i = 1;
+                    ret = [n];
                 }
+                i = 1;
             }
             else {
                 ret = combinators[combinator](contexts[j], selector.tag);
@@ -521,10 +453,12 @@ var whiz = function(selector, context, firstOnly) {
             }
             if (filLen) {
                 for (; i < filLen; i++) {
-                    ret = filter(ret, filters[i], contexts[j]);
+                    ret = filter(ret, filters[i]);
                 }
             }
-
+            else {
+                //ret = nodesToArray(ret);
+            }
             results = results.concat(ret);
         }
         return results;
@@ -548,19 +482,17 @@ var whiz = function(selector, context, firstOnly) {
         return [ret, s];
     }
 
-    function query(s, contexts, firstOnly) {
-        var ret = null, results = [];
+    function query(s, contexts, firstOnly, prefix) {
+        var ret = null, results = [], prefix = prefix || '';
         while (s.length > 0) {
-            ret = querySubSelectors(s, contexts, firstOnly);
+            ret = querySubSelectors(prefix + s, contexts, firstOnly);
+            //console.log(prefix + s);
             s = ret[1];
             results = results.concat(ret[0]);
         }
         //console.log(results);
-        clearFoundCache();
         return results;
     }
 
     return query(selector, [context], firstOnly);
 };
-
-whiz.uid = 0;
