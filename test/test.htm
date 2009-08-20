@@ -10,18 +10,21 @@
     </style>
     <script type="text/javascript" src="../build/js/jui.js"></script>
     <script type="text/javascript" src="../build/js/whiz.js"></script>
-    <script type="text/javascript" src="../../lib/Sly.js"></script>
+    <script type="text/javascript" src="../../lib/sly/Sly.js"></script>
+    <script type="text/javascript" src="../../lib/mootools-slick.js"></script>
 </head>
 <body>
-    <div>
+    <div class="green">
         <p></p>
-        <div>
-            <div></div>
+        <div class="green">
+            <div class="red">oh, no!</div>
+            <a href="#">a link</a>
+            <a href="#" title="a">link b</a>
             <p></p>
         </div>
         <p></p>
-        <div></div>
-        <div></div>
+        <div id="myid" class="green"></div>
+        <div class="green red"></div>
         <p></p>
     </div>
     <p></p>
@@ -35,6 +38,7 @@
     <p></p>
     <script type="text/javascript">
     <!--
+        //alert(whiz('div[id]:contains(no)'));
         //alert('as'.test());
         //alert(Array.slice([1,2,3,4,5,6], 2));
         //alert([ScriptEngine(), ScriptEngineMajorVersion(), ScriptEngineMinorVersion(), ScriptEngineBuildVersion()].join('.'));
