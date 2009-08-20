@@ -84,7 +84,7 @@
                 // avoid using the length property of nodeLists
                 // it may have been overwritten by bad HTML code
                 var i = 0, array = [];
-                while ((array[i] = list[i++])) { }
+                while ((array[i] = nodes[i++])) { }
                 array.length--;
                 return array;
             }
