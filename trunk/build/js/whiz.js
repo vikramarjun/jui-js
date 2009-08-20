@@ -134,7 +134,7 @@
         }
 
         var selectors = [], sentence = [], parsed, match, combinator,
-            sni = 0, sli = 0, ci = 0, ai = 0, pi = 0;
+            sni = sli = ci = ai = pi = 0;
 
         parsed = create();
         re.lastIndex = 0;
@@ -175,9 +175,7 @@
                 }
 
                 parsed = create(combinator);
-                ci = 0;
-                ai = 0;
-                pi = 0;
+                ci = ai = pi = 0;
             }
             else {
                 break;
@@ -342,7 +340,7 @@
         }
     };
 
-    // cache parsed nth expression
+    // cache parsed nth expression and nth nodes
     var nthCache = {}, nthNodesCache = {};
 
     // parse nth expression
@@ -374,40 +372,43 @@
         return (nthCache[expr] = { a: a, b: b });
     }
 
-    // judge if matches with the nth expression
-    function getNth(node, parsed, reverse) {
-        var a, b, siblings, ret = false, i, len;
+    // whether is nth-child
+    function isNth(node, parsed, sibling, tag) {
+        var uid, puid, pos, cache, count = 1;
 
-        a = parsed.a;
-        b = parsed.b;
+        uid = getUid(node);
+        puid = getUid(node.parentNode);
 
-        siblings = node.parentNode.children;
+        cache = nthNodesCache[puid] || (nthNodesCache[puid] = {});
 
-        if (a === 0) {
-            ret = reverse ? (siblings[siblings.length - b + 1]) : (siblings[b - 1] === node);
-        }
-        else {
-            a < 0 && (a = Math.abs(a));
+        if (!cache[uid]) {
+            while ((node = node[sibling])) {
+                if (node.nodeType != 1 || (tag && node.tagName != tag)) continue;
+                pos = cache[getUid(node)];
 
-            if (reverse) {
-                for (i = siblings.length - b, len = siblings.length; i >= 0; i -= a) {
-                    if (i < len && siblings[i] === node) {
-                        ret = true;
-                        break;
-                    }
+                if (pos) {
+                    count = pos + count;
+                    break;
                 }
+                count++;
             }
-            else {
-                for (i = b - 1, len = siblings.length; i < len; i += a) {
-                    if (i >= 0 && siblings[i] === node) {
-                        ret = true;
-                        break;
-                    }
-                }
-            }
+            cache[uid] = count;
         }
 
-        return ret;
+        return (parsed.a ? cache[uid] % parsed.a == parsed.b : parsed.b == cache[uid]);
+    }
+
+    // whether is only
+    function isOnly(node, tag) {
+        var prev = node;
+        while ((prev = prev.previousSibling)) {
+            if (prev.nodeType === 1 && (!tag || prev.tagName == tag)) return false;
+        }
+        var next = node;
+        while ((next = next.nextSibling)) {
+            if (next.nodeType === 1 && (!tag || next.tagName == tag)) return false;
+        }
+        return true;
     }
 
     var pseudo = {
@@ -415,37 +416,16 @@
             return node === node.ownerDocument.documentElement;
         },
         'nth-child': function(node, parsed) {
-            var uid, puid, pos, cachem, count = 1;
-
-            uid = getUid(node);
-            puid = getUid(node.parentNode);
-
-            cache = nthNodesCache[puid] || (nthNodesCache[puid] = {});
-
-            if (!cache[uid]) {
-                while ((node = node.previousSibling)) {
-                    if (node.nodeType != 1) continue;
-                    count++;
-                    pos = cache[getUid(node)];
-
-                    if (pos) {
-                        count = pos + count - 1;
-                        break;
-                    }
-                }
-                cache[uid] = count;
-            }
-
-            return (cache[uid] % parsed.a == parsed.b);
+            return isNth(node, parsed, 'previousSibling');
         },
         'nth-last-child': function(node, parsed) {
-            return;
+            return isNth(node, parsed, 'nextSibling');
         },
         'nth-of-type': function(node, parsed) {
-            return;
+            return isNth(node, parsed, 'previousSibling', node.tagName);
         },
         'nth-last-of-type': function(node, parsed) {
-            return;
+            return isNth(node, parsed, 'nextSibling', node.tagName);
         },
         'first-child': function(node) {
             var sibling = node.parentNode.firstChild;
@@ -475,26 +455,10 @@
             return true;
         },
         'only-child': function(node) {
-            var prev = node;
-            while ((prev = prev.previousSibling)) {
-                if (prev.nodeType === 1) return false;
-            }
-            var next = node;
-            while ((next = next.nextSibling)) {
-                if (next.nodeType === 1) return false;
-            }
-            return true;
+            return isOnly(node);
         },
         'only-of-type': function(node) {
-            var prev = node, tagName = node.tagName;
-            while ((prev = prev.previousSibling)) {
-                if (prev.nodeType === 1 && node.tagName == tagName) return false;
-            }
-            var next = node;
-            while ((next = next.nextSibling)) {
-                if (next.nodeType === 1 && node.tagName == tagName) return false;
-            }
-            return true;
+            return isOnly(node, node.tagName);
         },
         'empty': function(node) {
             return !node.firstChild;
@@ -562,9 +526,6 @@
         'contains': function(node, re) {
             return re.test(node.innerText || node.textContent || '');
         },
-        'nth': function(node, value) {
-            return;
-        },
         'odd': function(node) {
             return;
         },
@@ -572,7 +533,8 @@
             return;
         }
     };
-    pseudo.index = pseudo.nth;
+    pseudo.nth = pseudo['nth-child'];
+    pseudo.index = pseudo['nth-child'];
 
     // filters
     var filter = {
@@ -700,6 +662,7 @@
     function search(sentence, contexts) {
         var i = 0, selector;
         current = {};
+        nthNodesCache = {};
         while (selector = sentence[i++]) {
             contexts = combine(selector, contexts);
         }
