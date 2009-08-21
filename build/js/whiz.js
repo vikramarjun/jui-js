@@ -1,4 +1,27 @@
-﻿var whiz = (function() {
+﻿/**
+ *
+ * whiz.js - A fast CSS selector engine and matcher
+ *
+ * Version:
+ *    1.0.0 Preview
+ *
+ * Author: 
+ *    xushengs@gmail.com
+ *    http://fdream.net
+ *
+ * Licence:
+ *    MIT License
+ *
+ * Thanks to:
+ *   Yahoo! YUI Team & contributors,
+ *   Valerio Proietti & MooTools contributors, 
+ *   John Resig & jQuery/Sizzle contributors,
+ *   Harald Kirschner & Sly contributors,
+ *   Thomas Aylott & Slick contributors
+ *
+ * */
+ 
+var whiz = (function() {
     var uid = 1,            // global uid of nodes
         current = {},       // current found
         support = {},       // features detection
