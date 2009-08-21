@@ -1,16 +1,13 @@
 ﻿var whiz = (function() {
-    var uid = 1,    // global uid of nodes
-        current = {},   // current found
-        support = {},   // features detection
-        parsedCache = {}, // parsed selectors,
-        attributeAlias = {
-            'class': 'className',
-            'html': 'innerHTML',
-            'for': 'htmlFor'
+    var uid = 1,            // global uid of nodes
+        current = {},       // current found
+        support = {},       // features detection
+        parsedCache = {},   // cache parsed selectors
+        attributeAlias = {  // attribute names
+            'class': 'className'
         },
 
-    // these regular expressions are from YUI, 
-    // maybe I shoud modify them to support muliti-languages
+    // these regular expressions are from YUI
     // tag: /^((?:-?[_a-z][\w-]*)|\*)/i, // tag must be the first, or it will be *
     // id: /^#([\w-]+)/,    // id starts with #
     // class: /^\.([\w-]+)/
@@ -44,33 +41,14 @@
         re = /((?:[_a-zA-Z][\w-]*)|\*)|(?:#([\w-]+))|(?:\.([\w-]+))|(?:\[([a-z]+\w*)+([~\|\^\$\*!]?=)?['"]?([^\]]*?)["']?\])|(?::([\-\w]+)(?:\(['"]?(.+?)["']?\))*)|(?:\s*((?:[>+~\s,])|$)\s*)/g;
 
 
-    // Checks similar to NWMatcher, Sizzle
+    // check features
     (function() {
         // Our guinea pig
         var testee = document.createElement('div'), id = (new Date()).getTime();
         testee.innerHTML = '<a name="' + id + '" class="€ b"></a>';
-        testee.appendChild(document.createComment(''));
-
-        // IE returns comment nodes for getElementsByTagName('*')
-        support.comment = (testee.getElementsByTagName('*').length > 1);
 
         // Safari can't handle uppercase or unicode characters when in quirks mode.
         support.qsa = !!(testee.querySelectorAll && testee.querySelectorAll('.€').length);
-
-        support.getByClass = (function() {
-            if (!testee.getElementsByClassName || !testee.getElementsByClassName('b').length) return false;
-            testee.firstChild.className = 'c';
-            return (testee.getElementsByClassName('c').length == 1);
-        })();
-
-        var root = document.documentElement;
-        root.insertBefore(testee, root.firstChild);
-
-        // IE returns named nodes for getElementById(name)
-        support.nameAsId = !!(document.getElementById(id));
-
-        root.removeChild(testee);
-
     })();
 
     // get unique id
@@ -96,24 +74,6 @@
         return text.replace(/[-.*+?^${}()|[\]\/\\]/g, '\\$&');
     }
 
-    // convert nodes to array
-    function nodesToArray(nodes) {
-        if (!nodes.slice) {
-            try {
-                return Array.prototype.slice.call(nodes, start, end);
-            } catch (e) { // IE: requires manual copy
-                // avoid using the length property of nodeLists
-                // it may have been overwritten by bad HTML code
-                var i = 0, array = [];
-                while ((array[i] = nodes[i++])) { }
-                array.length--;
-                return array;
-            }
-        }
-
-        return nodes;
-    }
-
     // create a parsed selector
     function create(combinator) {
         return {
@@ -128,7 +88,6 @@
 
     // parse a selector
     function parse(s) {
-        // if has parsed
         if (parsedCache[s]) {
             return parsedCache[s];
         }
@@ -164,7 +123,6 @@
                 sentence[sni++] = parsed;
 
                 if (match[9] == ',') {
-                    //parsed.last = true;
                     selectors[sli++] = sentence;
                     sentence = [];
                     sni = 0;
@@ -259,27 +217,28 @@
         },
 
         '+': function(node, cxt) {
-            var n = node, ret = false;
-            while (n = n.previousSibling) {
-                if (n != cxt && n.tagName == node.tagName) {
+            while (node = node.previousSibling) {
+                if (node.nodeType != 1) {
+                    continue;
+                }
+                if (node == cxt) {
+                    return true;
+                }
+                else if (node.tagName == node.tagName) {
                     return false;
                 }
+            }
+            return false;
+        },
+
+        '~': function(node, cxt) {
+            while (n = n.previousSibling) {
                 if (n == cxt) {
                     return true;
                 }
             }
-        },
 
-        '~': function(node, cxt) {
-            var ret = false;
-            while (n = n.previousSibling) {
-                if (n == cxt) {
-                    ret = true;
-                    break;
-                }
-            }
-
-            return ret;
+            return false;
         }
     };
 
@@ -372,7 +331,7 @@
         return (nthCache[expr] = { a: a, b: b });
     }
 
-    // whether is nth-child
+    // whether is nth-child or nth-type
     function isNth(node, parsed, sibling, tag) {
         var uid, puid, pos, cache, count = 1;
 
@@ -384,6 +343,7 @@
         if (!cache[uid]) {
             while ((node = node[sibling])) {
                 if (node.nodeType != 1 || (tag && node.tagName != tag)) continue;
+
                 pos = cache[getUid(node)];
 
                 if (pos) {
@@ -395,10 +355,10 @@
             cache[uid] = count;
         }
 
-        return (parsed.a ? cache[uid] % parsed.a == parsed.b : parsed.b == cache[uid]);
+        return parsed.a ? cache[uid] % parsed.a == parsed.b : parsed.b == cache[uid];
     }
 
-    // whether is only
+    // whether is only child or type
     function isOnly(node, tag) {
         var prev = node;
         while ((prev = prev.previousSibling)) {
@@ -416,10 +376,10 @@
             return node === node.ownerDocument.documentElement;
         },
         'nth-child': function(node, parsed) {
-            return isNth(node, parsed, 'previousSibling');
+            return (parsed.a == 1 && !parsed.b) ? true : isNth(node, parsed, 'previousSibling', false);
         },
         'nth-last-child': function(node, parsed) {
-            return isNth(node, parsed, 'nextSibling');
+            return (parsed.a == 1 && !parsed.b) ? true : isNth(node, parsed, 'previousSibling', false);
         },
         'nth-of-type': function(node, parsed) {
             return isNth(node, parsed, 'previousSibling', node.tagName);
@@ -442,7 +402,7 @@
         },
         'first-of-type': function(node) {
             var sibling = node.parentNode.firstChild, tagName = node.tagName;
-            while (sibling.nodeType != 1 && sibling.tagName != tagName) {
+            while (sibling.nodeType != 1 || sibling.tagName != tagName) {
                 sibling = sibling.nextSibling;
             }
             return node === sibling;
@@ -450,7 +410,7 @@
         'last-of-type': function(node) {
             var tagName = node.tagName;
             while ((node = node.nextSibling)) {
-                if (node.nodeType === 1 && node.tagName == tagName) return false;
+                if (node.nodeType == 1 && node.tagName == tagName) return false;
             }
             return true;
         },
@@ -466,27 +426,13 @@
         'parent': function(node) {
             return !!node.firstChild;
         },
-        'link': function() {
-            return;
-        },
-        'visited': function() {
-            return;
-        },
-        'active': function() {
-            return;
-        },
-        'hover': function() {
-            return;
-        },
-        'focus': function() {
-            return;
-        },
-        'target': function() {
-            return;
-        },
-        'lang': function() {
-            return;
-        },
+        //'link': function() { return; },
+        //'visited': function() { return; },
+        //'active': function() { return; },
+        //'hover': function() { return; },
+        //'focus': function() { return; },
+        //'target': function() { return; },
+        //'lang': function() { return; },
         'enabled': function() {
             return node.disabled === false && node.type !== "hidden";
         },
@@ -508,18 +454,10 @@
         'hidden': function(node) {
             return node.offsetWidth === 0 || node.offsetHeight === 0;
         },
-        'first-line': function() {
-            return;
-        },
-        'first-letter': function() {
-            return;
-        },
-        'before': function() {
-            return;
-        },
-        'after': function() {
-            return;
-        },
+        //'first-line': function() { return; },
+        //'first-letter': function() { return; },
+        //'before': function() { return; },
+        //'after': function() { return; },
         'not': function(node, value) {
             return !testNode(node, value);
         },
@@ -536,6 +474,18 @@
     pseudo.nth = pseudo['nth-child'];
     pseudo.index = pseudo['nth-child'];
 
+    var pseudoRE = {
+        't': function(value) {      // not pseudo class
+            return parse(value);
+        },
+        'n': function(value) {      // contains and lang pseudo class
+            return new RegExp(escapeRegExp(value));
+        },
+        'h': function(value) {      // nth pseduo class
+            return parseNth(value);
+        }
+    };
+
     // filters
     var filter = {
         klass: function(nodes, name) {
@@ -550,16 +500,19 @@
         },
 
         attribute: function(nodes, attr) {
-            var n, i = 0, results = [], r = 0, pattern, key = attributeAlias[attr.key] || attr.key;
+            var n, i = 0, results = [], r = 0, pattern,
+                key = attributeAlias[attr.key] || attr.key,
+                flag = /^(?:src|href|action)$/.test(key) ? 2 : 0;
+                
             if (attr.op) {
                 pattern = attributeRE[attr.op](attr.value);
                 while (n = nodes[i++]) {
-                    attribute[attr.op](n[key] || n.getAttribute(key), pattern) && (results[r++] = n);
+                    attribute[attr.op](n[key] || n.getAttribute(key, flag), pattern) && (results[r++] = n);
                 }
             }
             else {
                 while (n = nodes[i++]) {
-                    (n[key] != null || n.getAttribute(key) != null) && (results[r++] = n);
+                    ((n[key] || n.getAttribute(key, flag)) != null) && (results[r++] = n);
                 }
             }
 
@@ -567,25 +520,12 @@
         },
 
         pseudo: function(nodes, pdo) {
-            var parsed = pdo.value, n, i = 0, results = [];
+            var parsed = pdo.value, key = pdo.key, n, i = 0, results = [], r = 0;
 
-            //if (/^nth-/.test(pdo.key)) {
-            //    parsed = parseNth(pdo.value);
-            //}
-            switch (pdo.key.charAt(2)) {
-                case 't': // not
-                    parsed = parse(pdo.value);
-                    break;
-                case 'n': // contains
-                    parsed = new RegExp(escapeRegExp(pdo.value));
-                    break;
-                case 'h': // nth
-                    parsed = parseNth(pdo.value);
-                    break;
-            }
+            parsed && (parsed = pseudoRE[key.charAt(2)](parsed));
 
             while (n = nodes[i++]) {
-                pseudo[pdo.key](n, parsed) && results.push(n);
+                pseudo[key](n, parsed) && (results[r++] = n);
             }
 
             return results;
@@ -594,7 +534,7 @@
 
     // query sub selector
     function combine(selector, contexts) {
-        var ret = [], klass, i, item,
+        var ret = [], klass, i = 0, item,
             locate = locateCurrent,
         // selector related
             combinator = selector.combinator,
@@ -611,7 +551,6 @@
 
             // match tag and match combinator
             if (tag == '*' || node.tagName == tag) {
-                i = 0;
                 while (cxt = contexts[i++]) {
                     if (combineById[combinator](node, cxt)) {
                         ret = [node];
@@ -631,25 +570,22 @@
             }
         }
 
-        if (classes.length > 0) {
+        if (classes.length > (i = 0)) {
             // filter nodes by class
-            i = 0;
             while (item = classes[i++]) {
                 ret = filter.klass(ret, item);
             }
         }
 
-        if (attributes.length > 0) {
+        if (attributes.length > (i = 0)) {
             // filter nodes by attributes
-            i = 0;
             while (item = attributes[i++]) {
                 ret = filter.attribute(ret, item);
             }
         }
 
-        if (pseudos.length > 0) {
+        if (pseudos.length > (i = 0)) {
             // filter nodes by pseudos
-            i = 0;
             while (item = pseudos[i++]) {
                 ret = filter.pseudo(ret, item);
             }
@@ -672,10 +608,8 @@
 
     // query a selector
     function query(selector, contexts) {
-        var results = [], i = 0, selectors, sentence;
-
-        selectors = parse(selector);
-        //console.log(selectors);
+        var results = [], i = 0, sentence,
+            selectors = parse(selector);
 
         while (sentence = selectors[i++]) {
             if (results.length > 0) {
@@ -691,62 +625,43 @@
 
     // test a node whether match a selector
     function testNode(node, parsed) {
-        var i = 0, item, key, pattern;
+        var i = 0, item, key, pattern, flag;
         parsed = parsed[0][0];
 
         if (parsed.id && parsed.id != node.id) {
             return false;
         }
 
-        if (parsed.classes.length > 0) {
-            // filter nodes by class
-            i = 0;
+        if (parsed.classes.length > (i = 0)) {
+            // filter node by class
             while (item = parsed.classes[i++]) {
-                pattern = new RegExp('(?:^|\\s+)' + escapeRegExp(item) + '(?:\\s+|$)');
-
-                if (!pattern.test(node.className)) {
+                if (!(new RegExp('(?:^|\\s+)' + escapeRegExp(item) + '(?:\\s+|$)')).test(node.className)) {
                     return false;
                 }
             }
         }
 
-        if (parsed.attributes.length > 0) {
-            // filter nodes by attributes
-            i = 0;
+        if (parsed.attributes.length > (i = 0)) {
+            // filter node by attributes
             while (item = parsed.attributes[i++]) {
                 key = attributeAlias[item.key];
-                key = node[key] || node.getAttribute(key);
+                flag = /^(?:src|href|action)$/.test(key) ? 2 : 0;
+                key = node[key] || node.getAttribute(key, flag);
                 if (item.op) {
-                    pattern = attributeRE[item.op](item.value);
-                    if (!attribute[item.op](key, pattern)) {
+                    if (!attribute[item.op](key, attributeRE[item.op](item.value))) {
                         return false;
                     }
                 }
-                else {
-                    if (key == null) {
-                        return false;
-                    }
+                else if (key == null) {
+                    return false;
                 }
             }
         }
 
-        if (parsed.pseudos.length > 0) {
-            // filter nodes by pseudos
-            i = 0;
+        if (parsed.pseudos.length > (i = 0)) {
+            // filter node by pseudos
             while (item = parsed.pseudos[i++]) {
-                pattern = item.value;
-                switch (item.key.charAt(2)) {
-                    case 't': // not
-                        pattern = parse(item.value);
-                        break;
-                    case 'n': // contains
-                        pattern = new RegExp(escapeRegExp(item.value));
-                        break;
-                    case 'h': // nth
-                        pattern = parseNth(item.value);
-                        break;
-                }
-
+                (pattern = item.value) && (pattern = pseudoRE[item.key.charAt(2)](pattern));
                 if (!pseudo[item.key](node, pattern)) {
                     return false;
                 }
@@ -758,7 +673,6 @@
 
     // return the selector function
     return function(selector, context) {
-        //console.time('whiz');
         // TODO: handle empty string
         if (!selector || typeof selector !== "string") {
             return [];
@@ -769,7 +683,17 @@
         if (context.nodeType !== 1 && context.nodeType !== 9) {
             return [];
         }
-        //console.timeEnd('whiz');
-        return query(selector, [context]);
+
+        if (support.qsa) {
+            try {
+                return context.querySelectorAll(selector);
+            }
+            catch (e) {
+                return query(selector, [context]);
+            }
+        }
+        else {
+            return query(selector, [context]);
+        }
     }
 })();
