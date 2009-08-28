@@ -33,13 +33,17 @@
 	_modules = {},
     // modules and scripts url
 	_modList = {
-	    'browser': 'browser.js',
+    'browser': 'browser.js',
+    'element': 'element.js',
 	    'selector': 'selector.js'
 	},
 
     $ = JUI = window.JUI = window.$ = function(selector, context) {
-        // TODO: init
-        return new $.Element(selector);
+        if (_modules['element']) {
+            return new $.Element(selector);
+        }
+
+        return document.getElementById(selector);
     };
 
     $.Native = {
@@ -184,6 +188,16 @@
                 (!_modules[mod]) && loadScripts(_modList[mod]);
             }
         }
+    };
+
+    /**
+    * judge if the module is loaded
+    *
+    * @module:
+    *   module name
+    * */
+    $.loaded = function(module) {
+        return _modules[module] == null;
     };
 
 })();
