@@ -1,6 +1,6 @@
 ﻿(function($) {
     // add to loaded module-list
-    $.register('element', '1.0.0.0');
+    $.register('browser', '1.0.0.0');
 
     // browser detection
     $.browser = {};      // user agents
