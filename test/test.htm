@@ -5,20 +5,22 @@
     <title>无标题页</title>
     <style type="text/css">
     #test{border:1px solid #cf9;background:#efd;width:240px;height:180px;}
-    .view{border:1px solid #fc9;background:#fed;width:240px;height:180px;}
+    .view{border:5px solid #fc9;background:#fed;width:240px;padding:10px;height:180px;}
     .red{padding-left:8px;color:#f00;}
     .hidden{display:none}
     </style>
     <script type="text/javascript" src="../build/js/jui.js"></script>
     <script type="text/javascript" src="../build/js/browser.js"></script>
-    <script type="text/javascript" src="../build/js/element.js"></script>
+    <script type="text/javascript" src="../build/js/string.js"></script>
     <script type="text/javascript" src="../build/js/selector.js"></script>
+    <script type="text/javascript" src="../build/js/element.js"></script>
     <script type="text/javascript" src="../../lib/sly/Sly.js"></script>
     <script type="text/javascript" src="../../lib/mootools-slick.js"></script>
 </head>
 <body>
     <div class="green">
         <p></p>
+        <div class="view">this is a div has class whose name is view</div>
         <div class="green">
             <div class="red">oh, no!</div>
             <a href="#">a link</a>
@@ -45,8 +47,25 @@
     <script type="text/javascript">
     <!--
         //alert($.browser.webkit);
-        //$('myid').hide();
-        $('a.hidden')[0].show();
+        //$('#myid').hide();
+        //$('a.hidden')[0].show();
+        //alert($.type($('a.hidden')));
+        //$('a.hidden').show();
+        var div = $('div.view')[0];
+        //div.css('opacity', '0.5').css('color', '#f00').css('font-size', '24px').css('font-family', '微软雅黑');
+        div.css({ 'opacity': '0.5', 'color': '#f00', 'font-size': '24px', 'border-width': '8px' }).css('font-family', '微软雅黑').css('width', 480);
+        //alert(div.css('opacity'));
+        //alert(div.css('font-size'));
+        //alert(div.css('width'));
+        //alert(div.css('width'));
+        //var sz = div.size({width:120, height:480});
+        //alert(sz.width + ';' + sz.height);
+        //alert(div.attr('readonly'));
+        //alert(div.txt());
+        div.txt('<b>readonly</b>');
+        //var ps = $('a.hidden')[0].position();
+        //var ps = div.position();
+        //alert(ps.x + '; ' + ps.y);
         //alert(whiz('div[id]:contains(no)'));
         //alert('as'.test());
         //alert(Array.slice([1,2,3,4,5,6], 2));

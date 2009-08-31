@@ -3,7 +3,13 @@
     $.register('string', '1.0.0.0');
 
     String.implement({
-        'trim': function(end) {
+        toCamelCase: function() {
+            return this.replace(/-\D/g, function(match) {
+                return match.charAt(1).toUpperCase();
+            });
+        },
+
+        trim: function(end) {
             ///<summary>
             /// 去掉字符串两端多余的空白字符
             ///</summary>
