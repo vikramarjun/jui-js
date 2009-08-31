@@ -33,9 +33,10 @@
 	_modules = {},
     // modules and scripts url
 	_modList = {
-    'browser': 'browser.js',
-    'element': 'element.js',
-	    'selector': 'selector.js'
+	    'browser': 'browser.js',
+	    'element': 'element.js',
+	    'selector': 'selector.js',
+	    'string': 'string.js'
 	},
 
     $ = JUI = window.JUI = window.$ = function(selector, context) {
@@ -51,10 +52,11 @@
             options = options || {};
             var initialize = options.initialize;
             var legacy = options.legacy;
-            var name = options.name || jui.name;
+            var name = options.name || JUI.name;
             var object = initialize || legacy;
             var protect = options.protect;
-
+            var afterImplement = options.afterImplement || function() { };
+            
             object.constructor = this.initialize;
             object.$family = name.toLowerCase();
             if (legacy && initialize) object.prototype = legacy.prototype;
@@ -63,6 +65,7 @@
 
             var add = function(obj, name, method, force) {
                 if (!protect || force || !obj.prototype[name]) obj.prototype[name] = method;
+                afterImplement.call(obj, name, method);
                 return obj;
             };
 
@@ -178,15 +181,10 @@
     * @modules:
     *   module name or an array list contains names of modules
     * */
-    $.requires = function(modules) {
-        if ($.type(modules) == 'string') {
-            (!_modules[modules]) && loadScripts(_modList[modules]);
-        }
-        else if ($.type(modules) == 'array') {
-            var i = 0, mod;
-            while (mod = modules[i++]) {
-                (!_modules[mod]) && loadScripts(_modList[mod]);
-            }
+    $.requires = function() {
+        var i = 0, mod;
+        while (mod = arguments[i++]) {
+            (!_modules[mod]) && loadScripts(_modList[mod]);
         }
     };
 
@@ -197,7 +195,7 @@
     *   module name
     * */
     $.loaded = function(module) {
-        return _modules[module] == null;
+        return _modules[module] !== null;
     };
 
 })();
