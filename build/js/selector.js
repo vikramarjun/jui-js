@@ -26,7 +26,7 @@
     * */
 
     var Whizz = (function() {
-        var uid = 1,            // global uid of nodes
+        var //uid = 1,            // global uid of nodes
         current = {},       // current found
         support = {},       // features detection
         parsedCache = {},   // cache parsed selectors
@@ -79,15 +79,15 @@
         })();
 
         // get unique id
-        var getUid = (window.ActiveXObject) ? function(node) {
-            return (node.$whizUid || (node.$whizUid = [uid++]))[0];
-        } : function(node) {
-            return node.$whizUid || (node.$whizUid = uid++);
-        };
+//        var getUid = (window.ActiveXObject) ? function(node) {
+//            return (node[$.expando] || (node[$.expando] = [$.getUid()]))[0];
+//        } : function(node) {
+//            return node[$.expando] || (node[$.expando] = $.getUid());
+//        };
 
         // locate current found
         function locateCurrent(node) {
-            var uid = getUid(node);
+            var uid = $.getUid(node);
             return (current[uid]) ? null : (current[uid] = true);
         };
 
@@ -362,8 +362,8 @@
         function isNth(node, parsed, sibling, tag) {
             var uid, puid, pos, cache, count = 1;
 
-            uid = getUid(node);
-            puid = getUid(node.parentNode);
+            uid = $.getUid(node);
+            puid = $.getUid(node.parentNode);
 
             cache = nthNodesCache[puid] || (nthNodesCache[puid] = {});
 
@@ -371,7 +371,7 @@
                 while ((node = node[sibling])) {
                     if (node.nodeType != 1 || (tag && node.tagName != tag)) continue;
 
-                    pos = cache[getUid(node)];
+                    pos = cache[$.getUid(node)];
 
                     if (pos) {
                         count = pos + count;

@@ -29,14 +29,17 @@
 	_JUI = window.JUI,
     // Map over the $ in case of overwrite
 	_$ = window.$,
+    // global uid
+	_uid = 1,
     // loaded modules
-	_modules = {},
+    _modules = {},
     // modules and scripts url
 	_modList = {
 	    'browser': 'browser.js',
 	    'element': 'element.js',
 	    'selector': 'selector.js',
-	    'string': 'string.js'
+	    'string': 'string.js',
+	    'array': 'array.js'
 	},
 
     $ = JUI = window.JUI = window.$ = function(selector, context) {
@@ -56,7 +59,7 @@
             var object = initialize || legacy;
             var protect = options.protect;
             var afterImplement = options.afterImplement || function() { };
-            
+
             object.constructor = this.initialize;
             object.$family = name.toLowerCase();
             if (legacy && initialize) object.prototype = legacy.prototype;
@@ -118,8 +121,9 @@
         }
     })();
 
-    $.name = 'jui';
-    $.version = '1.0.0.0';
+    $.name = 'jui';         // name of framework
+    $.version = '1.0.0.0';  // current version of framework
+    $.expando = '_JUI_' + new Date, // name of uid property
 
     /**
     * return type of an object
@@ -131,7 +135,10 @@
         return obj.$family ? obj.$family : typeof obj;
     };
 
-    // just a empty function
+    /**
+    * just a empty function
+    *
+    * */
     $.empty = function() { };
 
     /**
@@ -196,6 +203,24 @@
     * */
     $.loaded = function(module) {
         return _modules[module] !== null;
+    };
+
+    /**
+    * return current timestamp
+    *
+    * */
+    $.now = function() {
+        return +new Date;
+    };
+
+    /**
+    * return a global unique id of an element
+    *
+    * */
+    $.getUid = (window.ActiveXObject) ? function(node) {
+        return (node[$.expando] || (node[$.expando] = [_uid++]))[0];
+    } : function(node) {
+        return node[$.expando] || (node[$.expando] = _uid++);
     };
 
 })();
