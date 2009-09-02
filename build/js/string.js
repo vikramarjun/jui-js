@@ -61,7 +61,11 @@
             return (ae && i < tt) ? this.substring(0, i) + '...' : this.substring(0, i);
         },
 
-        escapseHTML: function() {
+        escapeRegExp: function() {
+            return this.replace(/([-.*+?^${}()|[\]\/\\])/g, '\\$1');
+        },
+
+        escapeHTML: function() {
             ///<summary>
             /// 对字符中的HTML代码进行转义
             ///</summary>
@@ -75,7 +79,7 @@
             return s;
         },
 
-        unescapseHTML: function() {
+        unescapeHTML: function() {
             ///<summary>
             /// 反转义字符中的HTML代码
             ///</summary>
