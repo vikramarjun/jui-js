@@ -1,4 +1,6 @@
-﻿(function($) {
+﻿$.requires('string');
+
+(function($) {
     // add to loaded module-list
     $.register('element', '1.0.0.0');
 
@@ -19,23 +21,28 @@
             innerText: (typeof testee.innerText) !== undefined ? true : false,
 
             // IE strips leading whitespace when .innerHTML is used
-            leadingWhitespace: testee.firstChild.nodeType == 3,
-
-            // Make sure that tbody elements aren't automatically inserted
-            // IE will insert them into empty tables
-            tbody: !!testee.getElementsByTagName("tbody").length,
-
-            // Make sure that link elements get serialized correctly by innerHTML
-            // This requires a wrapper element in IE
-            htmlSerialize: !!testee.getElementsByTagName("link").length,
+            leadingWhitespace: testee.firstChild && testee.firstChild.nodeType == 3,
 
             // Verify style float existence
             // (IE uses styleFloat instead of cssFloat)
             cssFloat: !!testee.style.cssFloat,
 
             // these will be specified later
-            cloneEvent: false
+            cloneEvent: false,
+
+            // Make sure that tbody elements aren't automatically inserted
+            // IE will insert them into empty tables
+            tbody: false,
+
+            // Make sure that link elements get serialized correctly by innerHTML
+            // This requires a wrapper element in IE
+            htmlSerialize: false
         };
+
+        if (testee.getElementsByTagName) {
+            support.tbody = !!testee.getElementsByTagName("tbody").length;
+            support.htmlSerialize = !!testee.getElementsByTagName("link").length;
+        }
 
         // clone event test
         if (testee.attachEvent && testee.fireEvent) {
@@ -392,9 +399,27 @@
             }
 
             return this;
-        },
+        }
+    });
 
+    /**
+    * Element.Data.js
+    *
+    * */
+    Element.implement({
         data: function(name, value) {
+            ///<summary>
+            /// 在该元素上存储或者读取数据
+            ///</summary>
+            ///<param name="name" type="String">
+            ///   要存储的数据的名称
+            ///</param>
+            ///<param name="value" type="Object">
+            ///   [可选]要存储的数据的值，
+            ///   若不提供，则读取该元素上已存储的对应的数据。
+            ///</param>
+            ///<returns type="Object" />
+
             var uid = $.getUid(this);
 
             // Only generate the data cache if we're
@@ -414,6 +439,15 @@
         },
 
         erase: function(name) {
+            ///<summary>
+            /// 清除在该元素上存储的数据
+            ///</summary>
+            ///<param name="name" type="String">
+            ///   [可选]要删除的数据的名称，
+            ///   若不提供，则删除该节点上存储的所有数据。
+            ///</param>
+            ///<returns type="$.Element" />
+
             var uid = $.getUid(this);
 
             // If we want to remove a specific section of the element's data
@@ -447,6 +481,14 @@
     * */
     Element.implement({
         getElement: function(selector) {
+            ///<summary>
+            /// 获取当前元素下符合选择器的第一个元素
+            ///</summary>
+            ///<param name="selector" type="String">
+            ///   CSS选择器
+            ///</param>
+            ///<returns type="$.Element" />
+
             if ($.loaded('selector')) {
                 return new Element($.Whizz(selector, this)[0]);
             }
@@ -456,6 +498,14 @@
         },
 
         getElements: function(selector) {
+            ///<summary>
+            /// 获取当前元素下符合选择器的所有元素
+            ///</summary>
+            ///<param name="selector" type="String">
+            ///   CSS选择器
+            ///</param>
+            ///<returns type="$.Elements" />
+
             if ($.loaded('selector')) {
                 return new Elements($.Whizz(selector, this));
             }
@@ -471,26 +521,47 @@
     * */
     Element.implement({
         txt: function(text) {
+            ///<summary>
+            /// 读取或者设置元素内的文本内容
+            ///</summary>
+            ///<param name="text" type="String">
+            ///   [可选]要设置的文本值，如不提供此参数，则读取该元素的文本内容
+            ///</param>
+            ///<returns type="STRING" />
+
             if (text === undefined) {
                 return this[support.innerText ? 'innerText' : 'textContent'];
             }
             else {
-                this.html(text.escapseHTML());
-                return this;
+                this.html(text.escapeHTML());
+                return text;
             }
         },
 
         html: function(html) {
-            if (html === undefined) {
-                return this.innerHTML;
-            }
-            else {
+            ///<summary>
+            /// 读取或者设置元素内的HTML文本
+            ///</summary>
+            ///<param name="text" type="String">
+            ///   [可选]要设置的HTML文本，如不提供此参数，则读取该元素的HTML文本
+            ///</param>
+            ///<returns type="STRING" />
+
+            if (html !== undefined) {
                 this.innerHTML = html;
-                return this;
             }
+            return this.innerHTML;
         },
 
         clone: function(content) {
+            ///<summary>
+            /// 复制当前元素，返回复制后的元素
+            ///</summary>
+            ///<param name="content" type="Boolean">
+            ///   [可选]是否复制元素的子元素，默认为true
+            ///</param>
+            ///<returns type="$.Element" />
+
             // default is clone context of the element
             content = content !== false;
             // Do the clone
@@ -518,16 +589,43 @@
         },
 
         prependTo: function(el) {
+            ///<summary>
+            /// 把当前元素插入到指定元素内头部
+            ///</summary>
+            ///<param name="el" type="$.Element">
+            ///   要插入的目标容器
+            ///</param>
+            ///<returns type="$.Element" />
+
             el.insertBefore(this, el.firstChild);
             return this;
         },
 
         appendTo: function(el) {
+            ///<summary>
+            /// 把当前元素插入到指定元素内尾部
+            ///</summary>
+            ///<param name="el" type="$.Element">
+            ///   要插入的目标容器
+            ///</param>
+            ///<returns type="$.Element" />
+
             el.appendChild(this);
             return this;
         },
 
-        insertInto: function(el, pos) {
+        inject: function(el, pos) {
+            ///<summary>
+            /// 把当前元素插入到指定元素内头部或者尾部
+            ///</summary>
+            ///<param name="el" type="$.Element">
+            ///   要插入的目标容器
+            ///</param>
+            ///<param name="pos" type="String">
+            ///   [可选]要插入的位置，可为top或者bottom，默认为bottom
+            ///</param>
+            ///<returns type="$.Element" />
+
             if (pos == 'top') {
                 this.prependTo(el);
             }
@@ -538,9 +636,50 @@
             return this;
         },
 
-        //insertBefore: function() {       },
+        insert: function(el, pos) {
+            ///<summary>
+            /// 把当前元素插入到指定元素的前面或者后面
+            ///</summary>
+            ///<param name="el" type="$.Element">
+            ///   要插入位置的参考元素
+            ///</param>
+            ///<param name="pos" type="String">
+            ///   [可选]要插入的位置，可为before或者after，默认为before
+            ///</param>
+            ///<returns type="$.Element" />
 
-        insertAfter: function(el) {
+            if (pos == 'after') {
+                this.after(el);
+            }
+            else {
+                this.before(el);
+            }
+
+            return this;
+        },
+
+        before: function(el) {
+            ///<summary>
+            /// 把当前元素插入到指定元素前面
+            ///</summary>
+            ///<param name="el" type="$.Element">
+            ///   要插入位置的参考元素
+            ///</param>
+            ///<returns type="$.Element" />
+
+            el.parentNode.insertBefore(this, el);
+            return this;
+        },
+
+        after: function(el) {
+            ///<summary>
+            /// 把当前元素插入到指定元素后面
+            ///</summary>
+            ///<param name="el" type="$.Element">
+            ///   要插入位置的参考元素
+            ///</param>
+            ///<returns type="$.Element" />
+
             var p = el.parentNode;
             if (el.nextSibling) {
                 p.insertBefore(this, el.nextSibling);
@@ -551,15 +690,21 @@
             return this;
         },
 
-        remove: function(el) {
-            this.removeChild(el);
-        },
-
         dispose: function() {
+            ///<summary>
+            /// 把当前元素从父元素中移除
+            ///</summary>
+            ///<returns type="$.Element" />
+
             return (this.parentNode) ? this.parentNode.removeChild(this) : this;
         },
 
         empty: function() {
+            ///<summary>
+            /// 清除当前元素中的所有内容
+            ///</summary>
+            ///<returns type="$.Element" />
+
             var child, childNodes = this.childNodes, i = 0;
             while (child = childNodes[i++]) {
                 child.destroy();
@@ -568,14 +713,18 @@
         },
 
         destroy: function() {
+            ///<summary>
+            /// 销毁当前元素并释放内存
+            ///</summary>
+            ///<returns type="null" />
+
             this.empty();
             this.dispose();
             this.removeEvents();
             return null;
         }
     });
-
-    Element.alias(['injectInto', 'injectTo'], 'insertInto');
+    Element.alias({ dispose: 'remove' });
 
     /**
     * Element.Event.js
@@ -583,7 +732,13 @@
     * */
     Element.implement({
         cloneEvents: function(from, type) {
-            // copy events from an element
+            ///<summary>
+            /// 从目标元素复制事件
+            ///</summary>
+            ///<param name="from" type="$.Element">要复制事件的目标元素</param>
+            ///<param name="type" type="String">要复制的事件类型</param>
+            ///<returns type="$.Element" />
+
             from = new Element(from);
             var fevents = this.data('events');
             if (!fevents) {
@@ -603,6 +758,14 @@
         },
 
         addEvent: function(type, fn, same) {
+            ///<summary>
+            /// 给元素添加事件
+            ///</summary>
+            ///<param name="type" type="String">事件类型，不带前面的on</param>
+            ///<param name="fn" type="Fucntion">事件处理函数</param>
+            ///<param name="same" type="Boolean">是否允许重复添加完全相同的事件</param>
+            ///<returns type="$.Element" />
+
             var events = this.data('events') || this.data('events', {});
 
             events[type] = events[type] || [];
@@ -633,6 +796,15 @@
         },
 
         removeEvent: function(type, fn) {
+            ///<summary>
+            /// 给元素添加事件
+            ///</summary>
+            ///<param name="type" type="String">事件类型，不带前面的on</param>
+            ///<param name="fn" type="Fucntion">
+            ///   [可选]事件处理函数，如果不提供则删除所有该类型的事件
+            ///</param>
+            ///<returns type="$.Element" />
+
             var events = this.data('events');
             if (!events || !events[type]) {
                 return this;
@@ -678,6 +850,14 @@
         },
 
         addEvents: function(events) {
+            ///<summary>
+            /// 一次性给元素添加多个事件
+            ///</summary>
+            ///<param name="events" type="Object">
+            ///   一个以事件类型为键（key），以事件处理函数为值（value）的hash对象
+            ///</param>
+            ///<returns type="$.Element" />
+
             for (var type in events) {
                 this.addEvent(type, events[type]);
             }
@@ -686,6 +866,16 @@
         },
 
         removeEvents: function(events) {
+            ///<summary>
+            /// 一次性删除多个事件
+            ///</summary>
+            ///<param name="events" type="Object">
+            ///   [可选]一个以事件类型为键（key），以事件处理函数为值（value）的hash对象；
+            ///   如果此参数为一个事件类型，这删除该类型的所有事件；
+            ///   如不提供此参数，则删除所有事件。
+            ///</param>
+            ///<returns type="$.Element" />
+
             if ($.type(events) == 'object') {
                 for (var type in events) {
                     this.removeEvent(type, events[type]);
@@ -711,6 +901,14 @@
         },
 
         fireEvent: function(type, args, delay) {
+            ///<summary>
+            /// 给元素添加事件
+            ///</summary>
+            ///<param name="type" type="String">事件类型，不带前面的on</param>
+            ///<param name="args" type="Array">要传递给事件处理函数的参数</param>
+            ///<param name="delay" type="Number">延迟触发事件的时间</param>
+            ///<returns type="$.Element" />
+
             var events = this.data('events');
             if (!events || !events[type]) {
                 return this;
@@ -731,4 +929,5 @@
     });
 
     $.Element = Element;
+    $.Elements = Elements;
 })(JUI);

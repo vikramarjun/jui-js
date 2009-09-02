@@ -43,6 +43,12 @@
 	},
 
     $ = JUI = window.JUI = window.$ = function(selector, context) {
+        ///<summary>
+        /// 根据选择器获取元素
+        ///</summary>
+        ///<param name="selector" type="String">选择器</param>
+        ///<param name="context" type="$.Element">要查找的上下文</param>
+        ///<returns type="$.Element" />
         if (_modules['element']) {
             return new $.Element(selector);
         }
@@ -50,7 +56,7 @@
         return document.getElementById(selector);
     };
 
-    $.Native = {
+    var Native = {
         initialize: function(options) {
             options = options || {};
             var initialize = options.initialize;
@@ -100,7 +106,7 @@
         },
 
         genericize: function(object, properties) {
-            object.genericize(properties);
+            object && object.genericize(properties);
         },
 
         implement: function(objects, properties) {
@@ -108,16 +114,18 @@
         }
     };
 
+    $.Native = Native;
+
     (function() {
         var natives = { 'Array': Array, 'Boolean': Boolean, 'Date': Date, 'Function': Function, 'Number': Number, 'RegExp': RegExp, 'String': String, 'JUI': $ };
-        for (var n in natives) $.Native.initialize({ name: n, initialize: natives[n], protect: true });
+        for (var n in natives) Native.initialize({ name: n, initialize: natives[n], protect: true });
 
         var generics = {
             'Array': ["concat", "indexOf", "join", "lastIndexOf", "pop", "push", "reverse", "shift", "slice", "sort", "splice", "toString", "unshift", "valueOf"],
             'String': ["charAt", "charCodeAt", "concat", "indexOf", "lastIndexOf", "match", "replace", "search", "slice", "split", "substr", "substring", "toLowerCase", "toUpperCase", "valueOf"]
         };
         for (var g in generics) {
-            for (var i = generics[g].length; i--; ) $.Native.genericize(window[g], generics[g]);
+            for (var i = generics[g].length; i--; ) Native.genericize(window[g], generics[g]);
         }
     })();
 
