@@ -1,6 +1,4 @@
-﻿JUI.requires('string');
-
-(function($) {
+﻿(function($) {
     // add to loaded module-list
     $.register('element', '1.0.0.0');
 
@@ -84,19 +82,22 @@
         }
         else {
             els = $.Whizz(selector);
-            var i = 0, array = [];
-            while ((array[i] = repack(els[i++]))) { }
-            array.length--;
-            return new Elements(array);
+            return new Elements(els);
         }
     };
 
     var Elements = function(els) {
         if (els && els.$family !== 'elements') {
+            var i = 0, array = [];
+            while ((array[i] = repack(els[i++]))) { }
+            array.length--;
+
             var proto = Elements.prototype;
             for (var p in proto) {
-                els[p] = proto[p];
+                array[p] = proto[p];
             }
+
+            els = array;
         }
         return els;
     };
@@ -222,7 +223,9 @@
     * */
     Element.implement({
         setStyle: function(style, value) {
-            style = alias[style] || style.toCamelCase();
+            style = alias[style] || style.replace(/-\D/g, function(match) {
+                return match.charAt(1).toUpperCase();
+            });
             switch (style) {
                 case 'opacity':
                     if (support.opacity) {
@@ -435,17 +438,29 @@
             }
 
             return this;
+        }
+    });
+
+    /**
+    * Element.Dom.js
+    *
+    * */
+    Element.implement({
+        getElement: function(selector) {
+            if ($.loaded('selector')) {
+                return new Element($.Whizz(selector, this)[0]);
+            }
+            else {
+                return new Element(this.getElementsByTagName(selector)[0]);
+            }
         },
 
-        hide: function() {
-            this.style.display = 'none';
-        },
-
-        show: function() {
-            this.style.display = '';
-            this.style.visibility = 'visible';
-            if ((window.getComputedStyle ? window.getComputedStyle(this, null).display : this.currentStyle.display) == 'none') {
-                this.style.display = 'block';
+        getElements: function(selector) {
+            if ($.loaded('selector')) {
+                return new Elements($.Whizz(selector, this));
+            }
+            else {
+                return new Elements(this.getElementsByTagName(selector));
             }
         }
     });
@@ -502,33 +517,65 @@
             }
         },
 
-        injectTo: function() {
+        prependTo: function(el) {
+            el.insertBefore(this, el.firstChild);
+            return this;
         },
 
-        prependTo: function() {
+        appendTo: function(el) {
+            el.appendChild(this);
+            return this;
         },
 
-        appendTo: function() {
+        insertInto: function(el, pos) {
+            if (pos == 'top') {
+                this.prependTo(el);
+            }
+            else {
+                this.appendTo(el);
+            }
+
+            return this;
         },
 
-        insertInto: function() {
+        //insertBefore: function() {       },
+
+        insertAfter: function(el) {
+            var p = el.parentNode;
+            if (el.nextSibling) {
+                p.insertBefore(this, el.nextSibling);
+            }
+            else {
+                p.appendChild(this);
+            }
+            return this;
         },
 
-        insertBefore: function() {
+        remove: function(el) {
+            this.removeChild(el);
         },
 
-        insertAfter: function() {
-        },
-
-        remove: function() {
+        dispose: function() {
+            return (this.parentNode) ? this.parentNode.removeChild(this) : this;
         },
 
         empty: function() {
+            var child, childNodes = this.childNodes, i = 0;
+            while (child = childNodes[i++]) {
+                child.destroy();
+            }
+            return this;
         },
 
         destroy: function() {
+            this.empty();
+            this.dispose();
+            this.removeEvents();
+            return null;
         }
     });
+
+    Element.alias(['injectInto', 'injectTo'], 'insertInto');
 
     /**
     * Element.Event.js
@@ -547,18 +594,21 @@
                 for (var evType in fevents) this.cloneEvents(from, evType);
             }
             else if (fevents[type]) {
-                fevents[type].keys.each(function(fn) {
+                var i = 0, fn, fns = fevents[type].keys;
+                while (fn = fns[i++]) {
                     this.addEvent(type, fn);
-                }, this);
+                }
             }
             return this;
         },
 
-        addEvent: function(type, fn) {
+        addEvent: function(type, fn, same) {
             var events = this.data('events') || this.data('events', {});
 
-            events[type] = events[type] || { 'keys': [], 'values': [] };
-            if (events[type].keys.contains(fn)) return this;
+            events[type] = events[type] || [];
+            if (!same && events[type].indexOf(fn) > -1) {
+                return this;
+            }
 
             if (type == 'unload') {
                 var old = fn, self = this;
@@ -567,9 +617,9 @@
                     old();
                 };
             }
-            else {
-                collected[this.uid] = this;
-            }
+            //else {
+            //    collected[this.uid] = this;
+            //}
 
             if (this.addEventListener) {
                 this.addEventListener(type, fn, false);
@@ -577,16 +627,106 @@
             else {
                 this.attachEvent('on' + type, fn);
             }
+
+            events[type].push(fn);
             return this;
         },
 
         removeEvent: function(type, fn) {
+            var events = this.data('events');
+            if (!events || !events[type]) {
+                return this;
+            }
+
+            if (!fn) {
+                // remove all events of this type
+                var i = 0, fns = events[type];
+                while (fn = fns[i++]) {
+                    this.removeEvent(type, fn);
+                }
+                delete events[type];
+
+                type = "";
+                for (type in events) {
+                    break;
+                }
+
+                if (!type) {
+                    this.erase();
+                }
+                else {
+                    this.data('events', events);
+                }
+
+                return this;
+            }
+
+            var pos = events[type].indexOf(fn);
+            if (pos == -1) {
+                return this;
+            }
+
+            events[type].splice(pos, 1)[0];
+            if (this.removeEventListener) {
+                this.removeEventListener(type, fn, false);
+            }
+            else {
+                this.detachEvent('on' + type, fn);
+            }
+
+            return this;
         },
 
         addEvents: function(events) {
+            for (var type in events) {
+                this.addEvent(type, events[type]);
+            }
+
+            return this;
         },
 
         removeEvents: function(events) {
+            if ($.type(events) == 'object') {
+                for (var type in events) {
+                    this.removeEvent(type, events[type]);
+                }
+                return this;
+            }
+
+            var attached = this.data('events');
+            if (!attached) {
+                return this;
+            }
+
+            if (!events) {
+                for (var type in attached) {
+                    this.removeEvent(type);
+                }
+                this.erase('events');
+            }
+            else {
+                this.removeEvent(events);
+            }
+            return this;
+        },
+
+        fireEvent: function(type, args, delay) {
+            var events = this.data('events');
+            if (!events || !events[type]) {
+                return this;
+            }
+
+            var i = 0, fns = events[type], fn, ret, self = this;
+            while (fn = fns[i++]) {
+                ret = function(f) {
+                    return function() {
+                        f.apply(self, args);
+                    }
+                };
+                setTimeout(ret(fn), delay);
+            }
+
+            return this;
         }
     });
 
