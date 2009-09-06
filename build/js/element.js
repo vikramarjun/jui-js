@@ -224,6 +224,16 @@
         return div.firstChild;
     }
 
+    function contains(arr, item) {
+        var i = 0, l = arr.length;
+        for (var i = 0; i < l; i++) {
+            if (arr[i] == item) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
     * Element.Style.js
     *
@@ -766,17 +776,26 @@
             ///<param name="same" type="Boolean">是否允许重复添加完全相同的事件</param>
             ///<returns type="$.Element" />
 
-            var events = this.data('events') || this.data('events', {});
+            var self = this,
+                events = this.data('events') || this.data('events', {});
+
+            var defn = function(e) {
+                if ($.loaded('event')) {
+                    e = new $.Event(e);
+                }
+                alert('xxx');
+                fn.call(self, e);
+            };
 
             events[type] = events[type] || [];
-            if (!same && events[type].indexOf(fn) > -1) {
+            if (!same && contains(events[type], defn)) {
                 return this;
             }
 
             if (type == 'unload') {
-                var old = fn, self = this;
-                fn = function() {
-                    self.removeListener('unload', fn);
+                var old = defn;
+                defn = function() {
+                    self.removeListener('unload', defn);
                     old();
                 };
             }
@@ -785,13 +804,13 @@
             //}
 
             if (this.addEventListener) {
-                this.addEventListener(type, fn, false);
+                this.addEventListener(type, defn, false);
             }
             else {
-                this.attachEvent('on' + type, fn);
+                this.attachEvent('on' + type, defn);
             }
 
-            events[type].push(fn);
+            events[type].push(defn);
             return this;
         },
 
