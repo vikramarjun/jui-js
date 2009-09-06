@@ -19,6 +19,7 @@
     <script type="text/javascript" src="../build/js/hash.js"></script>
     <script type="text/javascript" src="../build/js/json.js"></script>
     <script type="text/javascript" src="../build/js/cookie.js"></script>
+    <script type="text/javascript" src="../build/js/event.js"></script>
 </head>
 <body>
     <div class="green">
@@ -49,6 +50,17 @@
     <p></p>
     <script type="text/javascript">
     <!--
+        var a = $('a')[0];
+        function handler(e) {
+            var s = [];
+            for (var p in e) {
+                s.push(p + ': ' + e[p]);
+            }
+            $('div')[2].html(s.join('<br />'));
+            return false;
+            //console.log(new $.Event(e));
+        }
+        a.addEvent('click', handler);
         //alert($.browser.webkit);
         //$('#myid').hide();
         //$('a.hidden')[0].show();
