@@ -20,15 +20,13 @@
             return event;
         }
 
-        var doc = document;
-        var type = event.type;
+        var doc = document, win = window, type = event.type;
         var target = event.target || event.srcElement;
         while (target && target.nodeType == 3) {
             target = target.parentNode;
         }
 
         if (/key/.test(type)) {
-            alert(event.which);
             var code = event.which || event.keyCode;
             var key = keys[code];
             if (type == 'keydown') {
