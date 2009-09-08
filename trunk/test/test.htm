@@ -56,8 +56,9 @@
             for (var p in e) {
                 s.push(p + ': ' + e[p]);
             }
-            $('div')[2].html(s.join('<br />'));
-            return false;
+            this.html(s.join('<br />'));
+            e.stop();
+            //return false;
             //console.log(new $.Event(e));
         }
         a.addEvent('click', handler);

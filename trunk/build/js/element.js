@@ -783,7 +783,6 @@
                 if ($.loaded('event')) {
                     e = new $.Event(e);
                 }
-                alert('xxx');
                 fn.call(self, e);
             };
 
