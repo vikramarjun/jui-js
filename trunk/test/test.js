@@ -1,0 +1,1 @@
+﻿JUI.Loader.jui_cb_1('this is args');
