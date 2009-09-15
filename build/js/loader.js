@@ -2,18 +2,10 @@
     // add to loaded module-list
     $.register('loader', '1.0.0.0');
 
-    var loading = {}, src, charset, type = 'js', callback = $.empty;
+    var loading = {}, _source, cbIndex = 1, cbPrefix = 'jui_cb_';
 
-    function getOptions(options) {
-        options = options || {};
-        src = options.url;
-        type = options.type;
-        charset = options.charset;
-        callback = options.callback;
-    }
-
-    var Loader = function(options) {
-        getOptions(options);
+    var Loader = function(source) {
+        _source = source;
         return this;
     };
 
@@ -23,50 +15,106 @@
         protect: true
     });
 
-    Loader.implement({
-        load: function(options) {
-            options && getOptions(options);
+    function load(options) {
+        options = options || _source || {};
 
-            if (!src || src == '') {
-                return;
-            }
+        var src, charset, type = 'js', callback = $.empty, useParam, bind;
+        src = options.url;
+        type = options.type;
+        charset = options.charset;
+        callback = options.callback;
+        bind = options.bind;
+        useParam = options.param;
 
-            try {
-                var dom;
-                if (type == 'css') {
-                    dom = document.createElement('link');
-                    dom.rel = 'stylesheet';
-                    dom.type = 'text/css';
-                    dom.href = src;
+        if (!src || src == '') {
+            return;
+        }
+
+        try {
+            // generate callback functions and add parameters to url
+            if (useParam && callback) {
+                $.Loader[cbPrefix + cbIndex] = function() {
+                    callback.apply(bind, arguments);
+                }
+                if (src.indexOf('?') > -1) {
+                    src = src + '&cb=JUI.Loader.' + cbPrefix + cbIndex;
                 }
                 else {
-                    dom = document.createElement('script');
-                    dom.src = src;
-                    dom.type = 'text/javascript';
+                    src = src + '?cb=JUI.Loader.' + cbPrefix + cbIndex;
                 }
-                charset && (dom.charset = charset);
-                if (callback) {
-                    dom.onload = function() {
-                        callback(src, true);
-                    };
+                cbIndex++;
+            }
+            
+            var dom;
+            if (type == 'css') {
+                dom = document.createElement('link');
+                dom.rel = 'stylesheet';
+                dom.type = 'text/css';
+                dom.href = src;
+            }
+            else {
+                dom = document.createElement('script');
+                dom.src = src;
+                dom.type = 'text/javascript';
+            }
+            charset && (dom.charset = charset);
+            
+            if (!useParam && callback) {
+                dom.onload = function() {
+                    callback.apply(bind, [src, true]);
+                    //callback(src, true);
+                };
 
-                    dom.onerror = function() {
-                        callback(src, false);
-                    };
+                dom.onerror = function() {
+                    callback.apply(bind, [src, false]);
+                    //callback(src, false);
+                };
 
-                    dom.onreadystatechange = function() {
-                        if (dom.readyState == 'loaded') {
-                            callback(src, true);
-                        }
+                dom.onreadystatechange = function() {
+                    if (dom.readyState == 'loaded') {
+                        callback.apply(bind, [src, true]);
+                        //callback(src, true);
                     }
                 }
-                loading[src] = dom;
-                document.getElementsByTagName('head')[0].appendChild(dom);
-            } catch (e) {
-                callback(src, false);
+            }
+
+            loading[src] = dom;
+            document.getElementsByTagName('head')[0].appendChild(dom);
+        } catch (e) {
+            callback(src, false);
+        }
+    }
+
+    Loader.implement({
+        load: function(list) {
+            if (!list) {
+                list = [_source];
+            }
+            else if ($.type(list) != 'array') {
+                list = Array.prototype.slice.call(arguments, 0);
+            }
+            var i = 0, source;
+            while (source = list[i++]) {
+                load(source);
             }
 
             return this;
+        },
+
+        chain: function(list) {
+            if ($.type(list) != 'array') {
+                list = Array.prototype.slice.call(arguments, 0);
+            }
+            if (!list || list.length == 0) {
+                return;
+            }
+
+            var source = list.shift(), self = this;
+            cb = function(l, s) {
+                s.callback(s.url);
+                self.queue(l);
+            };
+            this.load({ url: source.url, type: source.type, callback: cb(list, source) });
         },
 
         cancel: function(src) {
