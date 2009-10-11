@@ -21,6 +21,7 @@
     <script type="text/javascript" src="../build/js/cookie.js"></script>
     <script type="text/javascript" src="../build/js/event.js"></script>
     <script type="text/javascript" src="../build/js/loader.js"></script>
+    <script type="text/javascript" src="../build/js/ajax.js"></script>
 </head>
 <body>
     <div class="green">
@@ -57,9 +58,32 @@
         function loadedjs(src, flag) {
             alert(['js', src, flag]);
         }
-        var loader = new $.Loader({ url: 'test.js', type: 'js', callback: loaded, param: true }).load();
+
+        var Test = {
+            key: 'value',
+            headers: function(headers) {
+                var s = [];
+                for (var h in headers) {
+                    s.push(h + ': ' + headers[h]);
+                }
+                alert(s.join('\n') + this.onSuccess);
+            },
+
+            text: function(txt) {
+                alert(txt);
+            },
+
+            go: function() {
+                var request = new $.Ajax({ url: 'test.js', type: 'xml', bind: this, onSuccess: this.onSuccess });
+                request.send({ data: { a: 1} });
+            }
+        };
+        //Test.go();
+        //var loader = new $.Loader({ url: 'test.js', type: 'js', callback: loaded, param: true }).load();
+        //var loader = new $.Loader({ url: 'test.js', type: 'js', callback: loaded, param: true }).load();
+        //var loader = new $.Loader({ url: 'test.js', type: 'js', callback: loaded, param: true }).load();
         //var loader = new $.Loader({ url: 'xx.css', type: 'css', callback: loaded }).load();
-        //new $.Loader().queue({ url: 'xx.css', type: 'css', callback: loaded }, { url: 'xx.js', type: 'js', callback: loadedjs });
+        //new $.Loader().chain({ url: 'xx.css', type: 'css', callback: loaded }, { url: 'xx.js', type: 'js', callback: loadedjs });
         /*
         var a = $('a')[0];
         function handler(e) {
