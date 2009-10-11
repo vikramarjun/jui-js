@@ -18,13 +18,14 @@
     function load(options) {
         options = options || _source || {};
 
-        var src, charset, type = 'js', callback = $.empty, useParam, bind;
+        var src, charset, type = 'js', callback = $.empty, useParam, bind, cache;
         src = options.url;
         type = options.type;
         charset = options.charset;
         callback = options.callback;
         bind = options.bind;
         useParam = options.param;
+        cache = options.cache;
 
         if (!src || src == '') {
             return;
@@ -42,9 +43,12 @@
                 else {
                     src = src + '?cb=JUI.Loader.' + cbPrefix + cbIndex;
                 }
+                if (!cache) {
+                    src = src + '&r=' + Math.random();
+                }
                 cbIndex++;
             }
-            
+
             var dom;
             if (type == 'css') {
                 dom = document.createElement('link');
@@ -58,7 +62,7 @@
                 dom.type = 'text/javascript';
             }
             charset && (dom.charset = charset);
-            
+
             if (!useParam && callback) {
                 dom.onload = function() {
                     callback.apply(bind, [src, true]);
@@ -112,7 +116,7 @@
             var source = list.shift(), self = this;
             cb = function(l, s) {
                 s.callback(s.url);
-                self.queue(l);
+                self.chain(l);
             };
             this.load({ url: source.url, type: source.type, callback: cb(list, source) });
         },
