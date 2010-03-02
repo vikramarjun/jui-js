@@ -1,4 +1,9 @@
-﻿(function($) {
+﻿/*
+* Author:
+*   xushengs@gmail.com
+*   http://fdream.net/
+* */
+(function ($) {
     // add to loaded module-list
     $.register('cookie', '1.0.0.0');
 
@@ -19,7 +24,7 @@
     }
 
     var Cookie = {
-        write: function(key, value, options) {
+        write: function (key, value, options) {
             mergeOptions(options);
             if (_options.encode) value = encodeURIComponent(value);
             if (_options.domain) value += '; domain=' + _options.domain;
@@ -34,7 +39,7 @@
             return this;
         },
 
-        read: function(key, options) {
+        read: function (key, options) {
             var value = _options.document.cookie.match('(?:^|;)\\s*' + key.replace(/([-.*+?^${}()|[\]\/\\])/g, '\\$1') + '=([^;]*)');
             // 默认decode，否则不decode
             if (_options.decode) {
@@ -45,8 +50,10 @@
             }
         },
 
-        remove: function(key, options) {
-            Cookie.write(key, '', mergeOptions({ duration: -1 }));
+        remove: function (key, options) {
+            mergeOptions(options);
+            _options.duration = -1;
+            Cookie.write(key, '');
             return this;
         }
     };

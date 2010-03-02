@@ -1,4 +1,9 @@
-﻿(function($) {
+﻿/*
+* Author:
+*   xushengs@gmail.com
+*   http://fdream.net/
+* */
+(function($) {
     // add to loaded module-list
     $.register('selector', '1.0.0.0');
 
@@ -79,11 +84,11 @@
         })();
 
         // get unique id
-//        var getUid = (window.ActiveXObject) ? function(node) {
-//            return (node[$.expando] || (node[$.expando] = [$.getUid()]))[0];
-//        } : function(node) {
-//            return node[$.expando] || (node[$.expando] = $.getUid());
-//        };
+        //        var getUid = (window.ActiveXObject) ? function(node) {
+        //            return (node[$.expando] || (node[$.expando] = [$.getUid()]))[0];
+        //        } : function(node) {
+        //            return node[$.expando] || (node[$.expando] = $.getUid());
+        //        };
 
         // locate current found
         function locateCurrent(node) {
@@ -231,7 +236,8 @@
         var combineById = {
             ' ': function(node, cxt) {
                 while (node = node.parentNode) {
-                    if (node == cxt) {
+                    // fixed a bug of IE6 with rising installed
+                    if (node == cxt || (cxt == document && node.documentElement)) {
                         return true;
                     }
                 }
@@ -710,18 +716,18 @@
             if (context.nodeType !== 1 && context.nodeType !== 9) {
                 return [];
             }
-
+            /*
             if (support.qsa) {
-                try {
-                    return context.querySelectorAll(selector);
-                }
-                catch (e) {
-                    return query(selector, [context]);
-                }
+            try {
+            return context.querySelectorAll(selector);
             }
-            else {
-                return query(selector, [context]);
+            catch (e) {
+            return query(selector, [context]);
             }
+            }
+            else {//*/
+            return query(selector, [context]);
+            //}
         }
     })();
 

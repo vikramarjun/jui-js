@@ -1,4 +1,9 @@
-﻿(function($) {
+﻿/*
+* Author:
+*   xushengs@gmail.com
+*   http://fdream.net/
+* */
+(function($) {
     // add to loaded module-list
     $.register('string', '1.0.0.0');
 
@@ -18,12 +23,12 @@
             switch (end) {
                 case 'l':
                 case 'left':
-                    return this.replace(/^\s+/, '');
+                    return this.replace(/^\s+/gm, '');
                 case 'r':
                 case 'right':
-                    return this.replace(/\s+$/, '');
+                    return this.replace(/\s+$/gm, '');
                 default:
-                    return this.replace(/(^\s+)|(\s+$)/, '');
+                    return this.replace(/(^\s+)|(\s+$)/gm, '');
             }
         },
         startsWith: function(s) {

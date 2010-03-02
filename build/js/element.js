@@ -1,14 +1,17 @@
-﻿$.requires('string');
-
+﻿/*
+* Author:
+*   xushengs@gmail.com
+*   http://fdream.net/
+* */
 (function($) {
     // add to loaded module-list
-    $.register('element', '1.0.0.0');
+    $.register('element', '1.0.1.0');
 
     // detect features
     var support = {}, cache = {}, collected = {};
 
     (function() {
-        var testee = document.createElement('div'), id = '_jui_' + (new Date()).getTime();
+        var /*de = document.documentElement,*/testee = document.createElement('div'), id = '_jui_' + (new Date()).getTime(), testee_a;
         testee.innerHTML = '   <link/><table></table><a name="' + id + '" class="€ b" href="/a" style="color:red;float:left;opacity:.5;">a</a><select><option>text</option></select>';
         //support.opacity = (typeof testee.style.opacity) !== 'undefined' ? 1 : ((typeof testee.filters === 'object') || (typeof testee.filter === 'string')) ? 2 : 0;
         // do not support any other old browsers
@@ -25,7 +28,7 @@
 
             // Verify style float existence
             // (IE uses styleFloat instead of cssFloat)
-            cssFloat: !!testee.style.cssFloat,
+            cssFloat: !(testee.style.cssFloat === undefined),
 
             // these will be specified later
             cloneEvent: false,
@@ -56,12 +59,51 @@
         }
     })();
 
+
+    function toCamelCase(str) {
+        return str.replace(/-\D/g, function(match) {
+            return match.charAt(1).toUpperCase();
+        });
+    }
+
+    function toHyphenCase(str) {
+        return str.replace(/[A-Z]/g, function(match) {
+            return ('-' + match.charAt(0).toLowerCase());
+        });
+    }
+
     var alias = {
         'class': 'className',
         'for': 'htmlFor',
         'float': support.cssFloat ? 'cssFloat' : 'styleFloat'
-    };
-    alias.cssFloat = alias.styleFloat = alias['float'];
+    },
+        unit = {
+            left: '@px', top: '@px', bottom: '@px', right: '@px',
+            width: '@px', height: '@px', maxWidth: '@px', maxHeight: '@px', minWidth: '@px', minHeight: '@px',
+            backgroundColor: 'rgb(@, @, @)', backgroundPosition: '@px @px', color: 'rgb(@, @, @)',
+            fontSize: '@px', letterSpacing: '@px', lineHeight: '@px', clip: 'rect(@px @px @px @px)',
+            margin: '@px @px @px @px', padding: '@px @px @px @px', border: '@px @ rgb(@, @, @) @px @ rgb(@, @, @) @px @ rgb(@, @, @)',
+            borderWidth: '@px @px @px @px', borderStyle: '@ @ @ @', borderColor: 'rgb(@, @, @) rgb(@, @, @) rgb(@, @, @) rgb(@, @, @)',
+            zIndex: '@', 'zoom': '@', fontWeight: '@', textIndent: '@px', opacity: '@'
+        },
+        shorts = { margin: {}, padding: {}, border: {}, borderWidth: {}, borderStyle: {}, borderColor: {} };
+
+    (function() {
+        var direction = ['Top', 'Right', 'Bottom', 'Left'],
+            m = 'margin', p = 'padding', b = 'border',
+            i = direction.length, d;
+        while (d = direction[--i]) {
+            var md = m + d, pd = p + d, bd = b + d;
+            shorts[m][md] = unit[md] = '@px';
+            shorts[p][pd] = unit[pd] = '@px';
+            shorts[b][bd] = unit[bd] = '@px @ rgb(@, @, @)';
+            var bdw = bd + 'Width', bds = bd + 'Style', bdc = bd + 'Color';
+            shorts[bd] = {};
+            shorts.borderWidth[bdw] = shorts[bd][bdw] = unit[bdw] = '@px';
+            shorts.borderStyle[bds] = shorts[bd][bds] = unit[bds] = '@';
+            shorts.borderColor[bdc] = shorts[bd][bdc] = unit[bdc] = 'rgb(@, @, @)';
+        }
+    })();
 
     var bools = {
         'compact': true,
@@ -78,17 +120,38 @@
         'defer': true
     };
 
-    var Element = function(selector) {
-        if ($.type(selector) !== 'string') {
-            return repack(selector);
+    var Element = function(tag, prop) {
+        /* 原本只是用来封装DOM查询结果的
+        * 现在增加创建新元素的方法
+        * 查询时：
+        *   create为false,
+        *   selector为css选择器
+        * 创建新元素时：
+        *   selector为标签名,
+        *   create为元素的属性
+        *     样式可以作为style属性写在create中
+        * */
+        if (prop !== false) {
+            var el = repack(document.createElement(tag));
+            // 设置样式表
+            if (prop && prop.style) {
+                el.css(prop.style);
+                delete prop.style;
+            }
+            // 设置元素属性
+            el.attr(prop);
+            return el;
         }
 
+        if ($.type(tag) !== 'string') {
+            return repack(tag);
+        }
         var el, els, re = /^#([\w-]+)$/;
-        if (re.test(selector) || !$.loaded('selector')) {
-            return repack(document.getElementById(selector));
+        if (re.test(tag) || !$.loaded('selector')) {
+            return repack(document.getElementById(tag.replace('#', '')));
         }
         else {
-            els = $.Whizz(selector);
+            els = $.Whizz(tag);
             return new Elements(els);
         }
     };
@@ -98,12 +161,10 @@
             var i = 0, array = [];
             while ((array[i] = repack(els[i++]))) { }
             array.length--;
-
             var proto = Elements.prototype;
             for (var p in proto) {
                 array[p] = proto[p];
             }
-
             els = array;
         }
         return els;
@@ -240,51 +301,104 @@
     * */
     Element.implement({
         setStyle: function(style, value) {
-            style = alias[style] || style.replace(/-\D/g, function(match) {
-                return match.charAt(1).toUpperCase();
-            });
-            switch (style) {
-                case 'opacity':
-                    if (support.opacity) {
-                        this.style.opacity = value;
+            if (style == 'opacity') {
+                value = parseFloat(value);
+                if (support.opacity) {
+                    this.style.opacity = value;
+                }
+                else {
+                    // Set the alpha filter to set the opacity
+                    this.style.filter = (this.style.filter || '').replace(/alpha\([^)]*\)/, '') + (value + '' == 'NaN' ? '' : 'alpha(opacity=' + value * 100 + ')');
+                    // IE has trouble with opacity if it does not have layout
+                    // Force it by setting the zoom level
+                    this.zoom = 1;
+                }
+                return;
+            }
+
+            style = alias[style] || toCamelCase(style);
+            var type = $.type(value);
+            if (type != 'string') {
+                value = (type != 'array' && type != 'arguments') ? [value] : value;
+                var fmt = (unit[style] || '@').split(' '), i = fmt.length, v;
+                while (i--) {
+                    v = value[i];
+                    if (!(v === 0 || v)) {
+                        fmt[i] = '';
                     }
                     else {
-                        // Set the alpha filter to set the opacity
-                        this.style.filter = (this.style.filter || "").replace(/alpha\([^)]*\)/, "") + (parseInt(value) + '' == "NaN" ? "" : "alpha(opacity=" + value * 100 + ")");
-                        // IE has trouble with opacity if it does not have layout
-                        // Force it by setting the zoom level
-                        this.zoom = 1;
+                        fmt[i] = $.type(v) == 'number' ? fmt[i].replace('@', Math.round(v)) : v;
                     }
-                    break;
-                case 'width':
-                case 'height':
-                    if (/^\d+$/.test(value)) {
-                        this.style[style] = value + 'px';
-                    }
-                    break;
-                default:
-                    this.style[style] = value;
-                    break;
+                }
+                value = fmt.join(' ');
             }
+            else if (value == '' + Number(value)) {
+                value = Math.round(value);
+            }
+            try {
+                this.style[style] = value;
+            }
+            catch (e) { }
+            return this;
         },
 
         getStyle: function(style) {
-            style = alias[style] || style.toCamelCase();
-            switch (style) {
-                case 'opacity':
-                    if (support.opacity) {
-                        return this.style.opacity;
-                    }
-                    else {
-                        return this.style.filter && this.style.filter.indexOf("opacity=") >= 0 ? (parseFloat(this.style.filter.match(/opacity=([^)]*)/)[1]) / 100) + '' : "";
-                    }
-                case 'width':
-                    return this.offsetWidth;
-                case 'height':
-                    return this.offsetHeight;
-                default:
-                    return this.style[style];
+            if (style == 'opacity') {
+                if (support.opacity) {
+                    return this.style.opacity;
+                }
+                else {
+                    return this.style.filter && this.style.filter.indexOf('opacity=') >= 0 ? (parseFloat(this.style.filter.match(/opacity=([^)]*)/)[1]) / 100) + '' : '';
+                }
             }
+
+            style = alias[style] || toCamelCase(style);
+            var result = this.style[style];
+            if (!(result === 0 || result)) {
+                result = [];
+                // if is a short, return joined value
+                for (var ss in shorts) {
+
+                    if (style != ss) {
+                        continue;
+                    }
+                    for (var s in shorts[ss]) {
+                        result.push(this.getStyle(s));
+                    }
+                    return result.join(' ');
+                }
+                // or get computed style
+                if (this.currentStyle) {
+                    return this.currentStyle[style];
+                }
+                var computed = this.getDocument().defaultView.getComputedStyle(this, null);
+                return (computed) ? computed.getPropertyValue([toHyphenCase(style)]) : null;
+            }
+            /*
+            * convert to hex
+            *
+            if (result) {
+            result = ''+ result;
+            var color = result.match(/rgba?\([\d\s,]+\)/);
+            if (color) result = result.replace(color[0], color[0].rgbToHex());
+            }
+            //*/
+            /*
+            * minus border and padding in IE & Opera
+            *
+            if (Browser.Engine.presto || (Browser.Engine.trident && !$chk(parseInt(result, 10)))) {
+            if (style.test(/^(height|width)$/)) {
+            var values = (style == 'width') ? ['left', 'right'] : ['top', 'bottom'], size = 0;
+            values.each(function(value) {
+            size += this.getStyle('border-' + value + '-width').toInt() + this.getStyle('padding-' + value).toInt();
+            }, this);
+            return this['offset' + property.capitalize()] - size + 'px';
+            }
+            if ((Browser.Engine.presto) && String(result).test('px')) return result;
+            if (property.test(/(border(.+)Width|margin|padding)/)) return '0px';
+            }
+            //*/
+            return result;
         },
 
         css: function(style, value) {
@@ -333,8 +447,8 @@
             }
         },
 
-        size: function(sz) {
-            if (sz === undefined) {
+        dimension: function(sz) {
+            if (!(sz === 0 || sz)) {
                 return { width: this.offsetWidth, height: this.offsetHeight };
             }
 
@@ -490,6 +604,9 @@
     *
     * */
     Element.implement({
+        getDocument: function() {
+            return this.ownerDocument;
+        },
         getElement: function(selector) {
             ///<summary>
             /// 获取当前元素下符合选择器的第一个元素
@@ -499,12 +616,14 @@
             ///</param>
             ///<returns type="$.Element" />
 
+            var els = [];
             if ($.loaded('selector')) {
-                return new Element($.Whizz(selector, this)[0]);
+                els = $.Whizz(selector, this);
             }
             else {
-                return new Element(this.getElementsByTagName(selector)[0]);
+                els = this.getElementsByTagName(selector);
             }
+            return els[0] ? new Element(els[0]) : null;
         },
 
         getElements: function(selector) {
@@ -767,29 +886,30 @@
             return this;
         },
 
-        addEvent: function(type, fn, same) {
+        addEvent: function(type, fn, bind, same) {
             ///<summary>
             /// 给元素添加事件
             ///</summary>
             ///<param name="type" type="String">事件类型，不带前面的on</param>
             ///<param name="fn" type="Fucntion">事件处理函数</param>
+            ///<param name="bind" type="Object">事件处理函数中this指向的对象</param>
             ///<param name="same" type="Boolean">是否允许重复添加完全相同的事件</param>
             ///<returns type="$.Element" />
 
-            var self = this,
-                events = this.data('events') || this.data('events', {});
+            var events = this.data('events') || this.data('events', {});
+            bind = bind ? bind : this;
+
+            events[type] = events[type] || { keys: [], values: [] };
+            if (!same && contains(events[type].keys, fn)) {
+                return this;
+            }
 
             var defn = function(e) {
                 if ($.loaded('event')) {
                     e = new $.Event(e);
                 }
-                fn.call(self, e);
+                fn.call(bind, e);
             };
-
-            events[type] = events[type] || [];
-            if (!same && contains(events[type], defn)) {
-                return this;
-            }
 
             if (type == 'unload') {
                 var old = defn;
@@ -809,7 +929,9 @@
                 this.attachEvent('on' + type, defn);
             }
 
-            events[type].push(defn);
+            events[type].keys.push(fn);
+            events[type].values.push(defn);
+
             return this;
         },
 
@@ -830,7 +952,7 @@
 
             if (!fn) {
                 // remove all events of this type
-                var i = 0, fns = events[type];
+                var i = 0, fns = events[type].keys;
                 while (fn = fns[i++]) {
                     this.removeEvent(type, fn);
                 }
@@ -851,12 +973,20 @@
                 return this;
             }
 
-            var pos = events[type].indexOf(fn);
+            var pos = -1, i = 0, f;
+            while (f = events[type].keys[i]) {
+                if (f == fn) {
+                    pos = i;
+                    break;
+                }
+                i++;
+            }
             if (pos == -1) {
                 return this;
             }
 
-            events[type].splice(pos, 1)[0];
+            events[type].keys.splice(pos, 1)
+            fn = events[type].values.splice(pos, 1)[0];
             if (this.removeEventListener) {
                 this.removeEventListener(type, fn, false);
             }

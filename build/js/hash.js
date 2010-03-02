@@ -1,4 +1,9 @@
-﻿(function($) {
+﻿/*
+* Author:
+*   xushengs@gmail.com
+*   http://fdream.net/
+* */
+(function($) {
     // add to loaded module-list
     $.register('hash', '1.0.0.0');
 
