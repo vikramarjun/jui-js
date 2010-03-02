@@ -50,7 +50,7 @@
         ///<param name="context" type="$.Element">要查找的上下文</param>
         ///<returns type="$.Element" />
         if (_modules['element']) {
-            return new $.Element(selector);
+            return new $.Element(selector, false);
         }
 
         return document.getElementById(selector);
@@ -140,7 +140,20 @@
     *    the object you want to do type test
     * */
     $.type = function(obj) {
-        return obj.$family ? obj.$family : typeof obj;
+        if (obj == undefined) return false;
+        if (obj.$family) return (obj.$family == 'number' && !isFinite(obj)) ? false : obj.$family;
+        if (obj.nodeName) {
+            switch (obj.nodeType) {
+                case 1: return 'element';
+                case 3: return (/\S/).test(obj.nodeValue) ? 'textnode' : 'whitespace';
+            }
+        } else if (typeof obj.length == 'number') {
+            if (obj.callee) return 'arguments';
+            else if (obj.item) return 'collection';
+        }
+        return typeof obj;
+
+        //return obj.$family ? obj.$family : typeof obj;
     };
 
     /**
@@ -155,14 +168,34 @@
     *  @deep:
     *    true to resolve JUI confilict
     * */
-    $.noConfilict = function(deep) {
+    $.noConfilict = function() {
         window.$ = _$;
 
-        if (deep) {
-            window.JUI = _JUI;
+        return this;
+    };
+
+    /*
+    * 类继承的实现
+    * */
+    $.extend = function(child, parent) {
+        if (!parent) {
+            throw 'Failed! Inherit from a null object';
         }
 
-        return this;
+        var pp = parent.prototype,
+            F = function() { };
+        F.prototype = pp;
+        var ext = new F();
+        child.prototype = ext;
+        ext.constructor = child;
+        child.superclass = pp;
+
+        // 如果没有构造函数，则指定一个
+        if (parent != Object && pp.constructor == Object.prototype.constructor) {
+            pp.constructor = parent;
+        }
+
+        return child;
     };
 
     /**
