@@ -152,7 +152,7 @@
         }
         else {
             els = $.Whizz(tag);
-            return new Elements(els);
+            return new Elements(els, false);
         }
     };
 
@@ -193,7 +193,7 @@
                     items.push(returns);
                     if (elements) elements = ($.type(returns) == 'element');
                 }
-                return (elements) ? new Elements(items) : items;
+                return (elements) ? new Elements(items, false) : items;
             });
         }
     });
@@ -623,7 +623,7 @@
             else {
                 els = this.getElementsByTagName(selector);
             }
-            return els[0] ? new Element(els[0]) : null;
+            return els[0] ? new Element(els[0], false) : null;
         },
 
         getElements: function(selector) {
@@ -636,10 +636,10 @@
             ///<returns type="$.Elements" />
 
             if ($.loaded('selector')) {
-                return new Elements($.Whizz(selector, this));
+                return new Elements($.Whizz(selector, this), false);
             }
             else {
-                return new Elements(this.getElementsByTagName(selector));
+                return new Elements(this.getElementsByTagName(selector), false);
             }
         }
     });
@@ -710,10 +710,10 @@
                     html = div.innerHTML;
                 }
 
-                return new Element(clean(html.replace(new RegExp($.expando + '="(?:\d+|null)"', 'g'), "").replace(/^\s*/, "")));
+                return new Element(clean(html.replace(new RegExp($.expando + '="(?:\d+|null)"', 'g'), "").replace(/^\s*/, "")), false);
             }
             else {
-                return new Element(this.cloneNode(content));
+                return new Element(this.cloneNode(content), false);
             }
         },
 
@@ -868,7 +868,7 @@
             ///<param name="type" type="String">要复制的事件类型</param>
             ///<returns type="$.Element" />
 
-            from = new Element(from);
+            from = new Element(from, false);
             var fevents = this.data('events');
             if (!fevents) {
                 return;

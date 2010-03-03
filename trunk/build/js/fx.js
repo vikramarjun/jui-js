@@ -70,6 +70,7 @@
                 var data = _options.effect.split(':');
                 _transition = $.Fx.Transitions;
                 _transition = _transition[capitalize(data[0])];
+                console.log(_transition);
                 if (data[1]) {
                     _transition = _transition['ease' + capitalize(data[1]) + (data[2] ? capitalize(data[2]) : '')];
                 }
