@@ -32,12 +32,12 @@
 
             for (var p in styles) {
                 if ($.type(styles[p]) !== 'array' || styles[p].length === 1 || styles[p][0] === undefined) {
-                    _from[p] = _dom.getStyle(p);
-                    _change[p] = (styles[p][0] === undefined ? styles[p] : styles[p][1]) - _from[p];
+                    _from[p] = parseFloat(_dom.getStyle(p));
+                    _change[p] = parseFloat(styles[p][0] === undefined ? styles[p] : styles[p][1]) - _from[p];
                 }
                 else {
-                    _from[p] = styles[p][0];
-                    _change[p] = styles[p][1] - _from[p];
+                    _from[p] = parseFloat(styles[p][0]);
+                    _change[p] = parseFloat(styles[p][1]) - _from[p];
                 }
             }
             this.startTimer();
