@@ -5,10 +5,18 @@
 * */
 (function($) {
     // add to loaded module-list
-    $.register('element', '1.0.1.0');
+    //$.register('element', '1.0.1.0');
+
+    ///<class>
+    ///    <name>$.Element</name>
+    ///    <summary>
+    ///         提供封装好Element元素，并提供常用的DOM操作方法。
+    ///    </summary>
+    ///    <include>$</include>
+    ///</class>
 
     // detect features
-    var support = {}, cache = {}, collected = {};
+    var support = {}; //, cache = {}; //, collected = {};
 
     (function() {
         var /*de = document.documentElement,*/testee = document.createElement('div'), id = '_jui_' + (new Date()).getTime(), testee_a;
@@ -121,22 +129,45 @@
     };
 
     var Element = function(tag, prop) {
+        ///<summary>
+        /// 构造函数，创建一个新的$.Element对象。
+        ///</summary>
+        ///<param name="tag" type="String">要创建的元素的标签名，如div，p等等。</param>
+        ///<param name="prop" type="Object">
+        ///     元素的style属性，以key/value方式组成一个Object。
+        ///</param>
+        ///<returns type="$.Element" />
+
         /* 原本只是用来封装DOM查询结果的
         * 现在增加创建新元素的方法
         * 查询时：
-        *   create为false,
-        *   selector为css选择器
+        *   prop为false,
+        *   tag为css选择器
         * 创建新元素时：
-        *   selector为标签名,
-        *   create为元素的属性
+        *   tag为标签名,
+        *   prop为元素的属性
         *     样式可以作为style属性写在create中
         * */
         if (prop !== false) {
+            if ($.type(tag) !== 'string') {
+                var rt = [];
+                for (var p in tag) {
+                    rt.push(new Element(p, tag[p]));
+                }
+                return new Elements(rt);
+            }
+
             var el = repack(document.createElement(tag));
             // 设置样式表
-            if (prop && prop.style) {
-                el.css(prop.style);
-                delete prop.style;
+            if (prop) {
+                if (prop.style) {
+                    el.css(prop.style);
+                    delete prop.style;
+                }
+
+                if (prop.html) {
+                    el.html(prop.html);
+                }
             }
             // 设置元素属性
             el.attr(prop);
@@ -147,11 +178,11 @@
             return repack(tag);
         }
         var el, els, re = /^#([\w-]+)$/;
-        if (re.test(tag) || !$.loaded('selector')) {
+        if (re.test(tag) || !$.Selector) {
             return repack(document.getElementById(tag.replace('#', '')));
         }
         else {
-            els = $.Whizz(tag);
+            els = $.Selector(tag);
             return new Elements(els, false);
         }
     };
@@ -285,22 +316,54 @@
         return div.firstChild;
     }
 
-    function contains(arr, item) {
-        var i = 0, l = arr.length;
-        for (var i = 0; i < l; i++) {
-            if (arr[i] == item) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     /**
     * Element.Style.js
     *
     * */
     Element.implement({
+        hasClass: function(cls) {
+            ///<summary>
+            /// 是否有指定的CSS类名
+            ///</summary>
+            ///<param name="cls" type="string">CSS类名</param>
+            ///<returns type="Boolean" />
+
+            return (' ' + this.className + ' ').indexOf(' ' + cls + ' ') > -1;
+        },
+
+        addClass: function(cls) {
+            ///<summary>
+            /// 添加CSS类
+            ///</summary>
+            ///<param name="cls" type="string">CSS类名</param>
+            ///<returns type="$.Element" />
+
+            if (!this.hasClass(cls)) {
+                this.className = this.className === '' ? cls : (this.className + ' ' + cls);
+            }
+
+            return this;
+        },
+
+        removeClass: function(cls) {
+            ///<summary>
+            /// 删除CSS类
+            ///</summary>
+            ///<param name="cls" type="string">CSS类名</param>
+            ///<returns type="$.Element" />
+
+            this.className = this.className.replace(new RegExp('(^|\\s)' + cls + '(?:\\s|$)', 'g'), '$1');
+            return this;
+        },
+
         setStyle: function(style, value) {
+            ///<summary>
+            /// 设置样式
+            ///</summary>
+            ///<param name="style" type="string">样式名</param>
+            ///<param name="value" type="string">样式值</param>
+            ///<returns type="$.Element" />
+
             if (style == 'opacity') {
                 value = parseFloat(value);
                 if (support.opacity) {
@@ -312,6 +375,16 @@
                     // IE has trouble with opacity if it does not have layout
                     // Force it by setting the zoom level
                     this.zoom = 1;
+                }
+                if (opacity == 0) {
+                    if (this.style.visibility != 'hidden') {
+                        this.style.visibility = 'hidden';
+                    }
+                }
+                else {
+                    if (this.style.visibility != 'visible') {
+                        this.style.visibility = 'visible';
+                    }
                 }
                 return;
             }
@@ -343,6 +416,11 @@
         },
 
         getStyle: function(style) {
+            ///<summary>
+            /// 获取样式
+            ///</summary>
+            ///<param name="style" type="string">样式名</param>
+            ///<returns type="string" />
             if (style == 'opacity') {
                 if (support.opacity) {
                     return this.style.opacity;
@@ -402,6 +480,19 @@
         },
 
         css: function(style, value) {
+            ///<summary>
+            /// 设置和获取样式
+            ///</summary>
+            ///<param name="style" type="Object">
+            ///	1. (string) 样式名
+            /// 2. (object) 样式组			
+            ///</param>
+            ///<param name="style" type="Object">
+            ///	(string) 样式值 [可选]
+            /// 若不提供，则获取样式
+            ///</param>
+            ///<returns type="$.Element" />
+            ///<returns type="string" />
             if ($.type(style) == 'object') {
                 for (var p in style) {
                     this.setStyle(p, style[p]);
@@ -419,18 +510,43 @@
         },
 
         getProperty: function(attr) {
+            ///<summary>
+            /// 获取属性
+            ///</summary>
+            ///<param name="style" type="string">属性名</param>
+            ///<returns type="string" />
             var key = alias[attr];
             var value = (key) ? this[key] : this.getAttribute(attr, 2);
             return (bools[attr]) ? !!value : (key) ? value : value || null;
         },
 
         setProperty: function(attr, value) {
+            ///<summary>
+            /// 设置属性
+            ///</summary>
+            ///<param name="style" type="string">属性名</param>
+            ///<param name="value" type="string">属性值</param>
+            ///<returns type="$.Element" />
             var key = alias[attr];
             if (key && bools[attr]) value = !!value;
             key ? this[key] = value : this.setAttribute(attr, '' + value);
+            return this;
         },
 
         attr: function(attr, value) {
+            ///<summary>
+            /// 设置和获取属性
+            ///</summary>
+            ///<param name="style" type="Object">
+            ///	1. (string) 属性名
+            /// 2. (object) 属性组			
+            ///</param>
+            ///<param name="style" type="Object">
+            ///	(string) 属性值 [可选]
+            /// 若不提供，则获取属性。
+            ///</param>
+            ///<returns type="$.Element" />
+            ///<returns type="string" />
             if ($.type(attr) == 'object') {
                 for (var a in attr) {
                     this.setProperty(a, attr[a]);
@@ -448,6 +564,15 @@
         },
 
         dimension: function(sz) {
+            ///<summary>
+            /// 设置和获取大小
+            ///</summary>
+            ///<param name="style" type="Object">
+            ///	带width和height属性的对象[可选]
+            /// 若不提供，则获取大小。
+            ///</param>
+            ///<returns type="$.Element" />
+            ///<returns type="object">带width和height属性的对象</returns>
             if (!(sz === 0 || sz)) {
                 return { width: this.offsetWidth, height: this.offsetHeight };
             }
@@ -462,6 +587,15 @@
         },
 
         position: function(pos) {
+            ///<summary>
+            /// 设置和获取位置
+            ///</summary>
+            ///<param name="style" type="Object">
+            ///	带left和top属性的对象[可选]
+            /// 若不提供，则获取位置。
+            ///</param>
+            ///<returns type="$.Element" />
+            ///<returns type="object">带left和top属性的对象</returns>
             if (pos === undefined) {
                 if (this.parentNode === null || this.style.display == 'none') {
                     return false;
@@ -527,79 +661,6 @@
     });
 
     /**
-    * Element.Data.js
-    *
-    * */
-    Element.implement({
-        data: function(name, value) {
-            ///<summary>
-            /// 在该元素上存储或者读取数据
-            ///</summary>
-            ///<param name="name" type="String">
-            ///   要存储的数据的名称
-            ///</param>
-            ///<param name="value" type="Object">
-            ///   [可选]要存储的数据的值，
-            ///   若不提供，则读取该元素上已存储的对应的数据。
-            ///</param>
-            ///<returns type="Object" />
-
-            var uid = $.getUid(this);
-
-            // Only generate the data cache if we're
-            // trying to access or manipulate it
-            if (name && !cache[uid]) {
-                cache[uid] = {};
-            }
-
-            // Prevent overriding the named cache with undefined values
-            if (value !== undefined) {
-                cache[uid][name] = value;
-                return value;
-            }
-
-            // Return the named cache data, or the ID for the element
-            return name ? cache[uid][name] : uid;
-        },
-
-        erase: function(name) {
-            ///<summary>
-            /// 清除在该元素上存储的数据
-            ///</summary>
-            ///<param name="name" type="String">
-            ///   [可选]要删除的数据的名称，
-            ///   若不提供，则删除该节点上存储的所有数据。
-            ///</param>
-            ///<returns type="$.Element" />
-
-            var uid = $.getUid(this);
-
-            // If we want to remove a specific section of the element's data
-            if (name) {
-                if (cache[uid]) {
-                    // Remove the section of cache data
-                    delete cache[uid][name];
-
-                    // If we've removed all the data, remove the element's cache
-                    name = "";
-
-                    for (name in cache[uid])
-                        break;
-
-                    (!name) && this.erase();
-                }
-
-                // Otherwise, we want to remove all of the element's data
-            } else {
-                // Completely remove the data cache
-                delete cache[uid];
-            }
-
-            return this;
-        }
-    });
-
-    /**
     * Element.Dom.js
     *
     * */
@@ -617,8 +678,8 @@
             ///<returns type="$.Element" />
 
             var els = [];
-            if ($.loaded('selector')) {
-                els = $.Whizz(selector, this);
+            if ($.Selector) {
+                els = $.Selector(selector, this);
             }
             else {
                 els = this.getElementsByTagName(selector);
@@ -635,8 +696,8 @@
             ///</param>
             ///<returns type="$.Elements" />
 
-            if ($.loaded('selector')) {
-                return new Elements($.Whizz(selector, this), false);
+            if ($.Selector) {
+                return new Elements($.Selector(selector, this), false);
             }
             else {
                 return new Elements(this.getElementsByTagName(selector), false);
@@ -717,38 +778,44 @@
             }
         },
 
-        prependTo: function(el) {
+        prepend: function(el) {
             ///<summary>
-            /// 把当前元素插入到指定元素内头部
+            /// 在当前元素头部插入指定元素
             ///</summary>
             ///<param name="el" type="$.Element">
-            ///   要插入的目标容器
+            ///   要插入的元素
             ///</param>
             ///<returns type="$.Element" />
 
-            el.insertBefore(this, el.firstChild);
+            el = el.clone();
+            if (this.firstChild) {
+                this.insertBefore(el, this.firstChild);
+            }
+            else {
+                this.appendChild(el);
+            }
             return this;
         },
 
-        appendTo: function(el) {
+        append: function(el) {
             ///<summary>
-            /// 把当前元素插入到指定元素内尾部
+            /// 在当前元素尾部插入指定元素
             ///</summary>
             ///<param name="el" type="$.Element">
-            ///   要插入的目标容器
+            ///   要插入的元素
             ///</param>
             ///<returns type="$.Element" />
 
-            el.appendChild(this);
+            this.appendChild(el.clone());
             return this;
         },
 
         inject: function(el, pos) {
             ///<summary>
-            /// 把当前元素插入到指定元素内头部或者尾部
+            /// 在当前元素内部插入指定元素
             ///</summary>
             ///<param name="el" type="$.Element">
-            ///   要插入的目标容器
+            ///   要插入的元素
             ///</param>
             ///<param name="pos" type="String">
             ///   [可选]要插入的位置，可为top或者bottom，默认为bottom
@@ -789,32 +856,33 @@
 
         before: function(el) {
             ///<summary>
-            /// 把当前元素插入到指定元素前面
+            /// 在当前元素前面插入指定元素
             ///</summary>
             ///<param name="el" type="$.Element">
-            ///   要插入位置的参考元素
+            ///   要插入的元素
             ///</param>
             ///<returns type="$.Element" />
 
-            el.parentNode.insertBefore(this, el);
+            this.parentNode.insertBefore(el.clone(), this);
             return this;
         },
 
         after: function(el) {
             ///<summary>
-            /// 把当前元素插入到指定元素后面
+            /// 在当前元素后面插入指定元素
             ///</summary>
             ///<param name="el" type="$.Element">
-            ///   要插入位置的参考元素
+            ///   要插入的元素
             ///</param>
             ///<returns type="$.Element" />
 
-            var p = el.parentNode;
-            if (el.nextSibling) {
-                p.insertBefore(this, el.nextSibling);
+            el = el.clone();
+            var p = this.parentNode;
+            if (this.nextSibling) {
+                p.insertBefore(el, this.nextSibling);
             }
             else {
-                p.appendChild(this);
+                p.appendChild(el);
             }
             return this;
         },
@@ -834,10 +902,11 @@
             ///</summary>
             ///<returns type="$.Element" />
 
-            var child, childNodes = this.childNodes, i = 0;
-            while (child = childNodes[i++]) {
-                child.destroy();
+            var childNodes = this.childNodes, i;
+            for (var i = childNodes.length; i > 0; i--) {
+                childNodes[i] && $(childNodes[i]).destroy();
             }
+
             return this;
         },
 
@@ -854,227 +923,6 @@
         }
     });
     Element.alias({ dispose: 'remove' });
-
-    /**
-    * Element.Event.js
-    *
-    * */
-    Element.implement({
-        cloneEvents: function(from, type) {
-            ///<summary>
-            /// 从目标元素复制事件
-            ///</summary>
-            ///<param name="from" type="$.Element">要复制事件的目标元素</param>
-            ///<param name="type" type="String">要复制的事件类型</param>
-            ///<returns type="$.Element" />
-
-            from = new Element(from, false);
-            var fevents = this.data('events');
-            if (!fevents) {
-                return;
-            }
-
-            if (!type) {
-                for (var evType in fevents) this.cloneEvents(from, evType);
-            }
-            else if (fevents[type]) {
-                var i = 0, fn, fns = fevents[type].keys;
-                while (fn = fns[i++]) {
-                    this.addEvent(type, fn);
-                }
-            }
-            return this;
-        },
-
-        addEvent: function(type, fn, bind, same) {
-            ///<summary>
-            /// 给元素添加事件
-            ///</summary>
-            ///<param name="type" type="String">事件类型，不带前面的on</param>
-            ///<param name="fn" type="Fucntion">事件处理函数</param>
-            ///<param name="bind" type="Object">事件处理函数中this指向的对象</param>
-            ///<param name="same" type="Boolean">是否允许重复添加完全相同的事件</param>
-            ///<returns type="$.Element" />
-
-            var events = this.data('events') || this.data('events', {});
-            bind = bind ? bind : this;
-
-            events[type] = events[type] || { keys: [], values: [] };
-            if (!same && contains(events[type].keys, fn)) {
-                return this;
-            }
-
-            var defn = function(e) {
-                if ($.loaded('event')) {
-                    e = new $.Event(e);
-                }
-                fn.call(bind, e);
-            };
-
-            if (type == 'unload') {
-                var old = defn;
-                defn = function() {
-                    self.removeListener('unload', defn);
-                    old();
-                };
-            }
-            //else {
-            //    collected[this.uid] = this;
-            //}
-
-            if (this.addEventListener) {
-                this.addEventListener(type, defn, false);
-            }
-            else {
-                this.attachEvent('on' + type, defn);
-            }
-
-            events[type].keys.push(fn);
-            events[type].values.push(defn);
-
-            return this;
-        },
-
-        removeEvent: function(type, fn) {
-            ///<summary>
-            /// 给元素添加事件
-            ///</summary>
-            ///<param name="type" type="String">事件类型，不带前面的on</param>
-            ///<param name="fn" type="Fucntion">
-            ///   [可选]事件处理函数，如果不提供则删除所有该类型的事件
-            ///</param>
-            ///<returns type="$.Element" />
-
-            var events = this.data('events');
-            if (!events || !events[type]) {
-                return this;
-            }
-
-            if (!fn) {
-                // remove all events of this type
-                var i = 0, fns = events[type].keys;
-                while (fn = fns[i++]) {
-                    this.removeEvent(type, fn);
-                }
-                delete events[type];
-
-                type = "";
-                for (type in events) {
-                    break;
-                }
-
-                if (!type) {
-                    this.erase();
-                }
-                else {
-                    this.data('events', events);
-                }
-
-                return this;
-            }
-
-            var pos = -1, i = 0, f;
-            while (f = events[type].keys[i]) {
-                if (f == fn) {
-                    pos = i;
-                    break;
-                }
-                i++;
-            }
-            if (pos == -1) {
-                return this;
-            }
-
-            events[type].keys.splice(pos, 1)
-            fn = events[type].values.splice(pos, 1)[0];
-            if (this.removeEventListener) {
-                this.removeEventListener(type, fn, false);
-            }
-            else {
-                this.detachEvent('on' + type, fn);
-            }
-
-            return this;
-        },
-
-        addEvents: function(events) {
-            ///<summary>
-            /// 一次性给元素添加多个事件
-            ///</summary>
-            ///<param name="events" type="Object">
-            ///   一个以事件类型为键（key），以事件处理函数为值（value）的hash对象
-            ///</param>
-            ///<returns type="$.Element" />
-
-            for (var type in events) {
-                this.addEvent(type, events[type]);
-            }
-
-            return this;
-        },
-
-        removeEvents: function(events) {
-            ///<summary>
-            /// 一次性删除多个事件
-            ///</summary>
-            ///<param name="events" type="Object">
-            ///   [可选]一个以事件类型为键（key），以事件处理函数为值（value）的hash对象；
-            ///   如果此参数为一个事件类型，这删除该类型的所有事件；
-            ///   如不提供此参数，则删除所有事件。
-            ///</param>
-            ///<returns type="$.Element" />
-
-            if ($.type(events) == 'object') {
-                for (var type in events) {
-                    this.removeEvent(type, events[type]);
-                }
-                return this;
-            }
-
-            var attached = this.data('events');
-            if (!attached) {
-                return this;
-            }
-
-            if (!events) {
-                for (var type in attached) {
-                    this.removeEvent(type);
-                }
-                this.erase('events');
-            }
-            else {
-                this.removeEvent(events);
-            }
-            return this;
-        },
-
-        fireEvent: function(type, args, delay) {
-            ///<summary>
-            /// 给元素添加事件
-            ///</summary>
-            ///<param name="type" type="String">事件类型，不带前面的on</param>
-            ///<param name="args" type="Array">要传递给事件处理函数的参数</param>
-            ///<param name="delay" type="Number">延迟触发事件的时间</param>
-            ///<returns type="$.Element" />
-
-            var events = this.data('events');
-            if (!events || !events[type]) {
-                return this;
-            }
-
-            var i = 0, fns = events[type], fn, ret, self = this;
-            while (fn = fns[i++]) {
-                ret = function(f) {
-                    return function() {
-                        f.apply(self, args);
-                    }
-                };
-                setTimeout(ret(fn), delay);
-            }
-
-            return this;
-        }
-    });
 
     $.Element = Element;
     $.Elements = Elements;

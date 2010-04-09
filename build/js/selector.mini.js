@@ -4,32 +4,6 @@
 *   http://fdream.net/
 * */
 (function($) {
-    // add to loaded module-list
-    //$.register('selector', '1.0.0.0');
-
-    /**
-    *
-    * whiz.js - A fast CSS selector engine and matcher
-    *
-    * Version:
-    *    1.0.0 Preview
-    *
-    * Licence:
-    *    MIT License
-    *
-    * Author: 
-    *    xushengs@gmail.com
-    *    http://fdream.net
-    *
-    * Thanks to:
-    *   Yahoo! YUI Team & contributors,
-    *   Valerio Proietti & MooTools contributors, 
-    *   John Resig & jQuery/Sizzle contributors,
-    *   Harald Kirschner & Sly contributors,
-    *   Thomas Aylott & Slick contributors
-    *
-    * */
-
     var Selector = (function() {
         var //uid = 1,            // global uid of nodes
         current = {},       // current found
@@ -38,37 +12,7 @@
         attributeAlias = {  // attribute names
             'class': 'className'
         },
-
-        // these regular expressions are from YUI
-        // tag: /^((?:-?[_a-z][\w-]*)|\*)/i, // tag must be the first, or it will be *
-        // id: /^#([\w-]+)/,    // id starts with #
-        // class: /^\.([\w-]+)/
-        // attribute: /^\[([a-z]+\w*)+([~\|\^\$\*!]?=)?['"]?([^\]]*?)['"]?\]/i,
-        // pseudo: /^:([\-\w]+)(?:\(['"]?(.+?)["']?\))*/ //,
-        // combinator: /^\s*((?:[>+~\s,])|$)\s*/    // comma for multi-selectors
-        // nth: /^(?:(?:([-]?\d*)(n{1}))?([-+]?\d*)|(odd|even))$/, // supports an+b, b, an, odd, even
-
-        /**
-        * large regular expression, match all types
-        * match list:
-        *  ----------------
-        *  tag:        m[1]
-        *  ----------------
-        *  id:         m[2]
-        *  ----------------
-        *  class:      m[3]
-        *  ----------------
-        *  attribute:  m[4]
-        *  operator:   m[5]
-        *  value:      m[6]
-        *  ----------------
-        *  pseudo:     m[7]
-        *  expression: m[8]
-        *  ----------------
-        *  combinator: m[9]
-        *  ----------------
-        *  
-        * */
+        
         nthRE = /^(?:(?:([-]?\d*)(n{1}))?([-+]?\d*)|(odd|even))$/, // supports an+b, b, an, odd, even
         re = /((?:[_a-zA-Z][\w-]*)|\*)|(?:#([\w-]+))|(?:\.([\w-]+))|(?:\[([a-z]+\w*)+([~\|\^\$\*!]?=)?['"]?([^\]]*?)["']?\])|(?::([\-\w]+)(?:\(['"]?(.+?)["']?\))*)|(?:\s*((?:[>+~\s,])|$)\s*)/g;
 
@@ -82,13 +26,6 @@
             // Safari can't handle uppercase or unicode characters when in quirks mode.
             support.qsa = !!(testee.querySelectorAll && testee.querySelectorAll('.€').length);
         })();
-
-        // get unique id
-        //        var getUid = (window.ActiveXObject) ? function(node) {
-        //            return (node[$.expando] || (node[$.expando] = [$.getUid()]))[0];
-        //        } : function(node) {
-        //            return node[$.expando] || (node[$.expando] = $.getUid());
-        //        };
 
         // locate current found
         function locateCurrent(node) {
@@ -113,8 +50,7 @@
                 tag: '*',
                 id: null,
                 classes: [],
-                attributes: [],
-                pseudos: []
+                attributes: []
             }
         }
 
@@ -145,10 +81,6 @@
                 // attributes
                 else if (match[4]) {
                     parsed.attributes[ai++] = { key: match[4], op: match[5], value: match[6] };
-                }
-                // pseudos
-                else if (match[7]) {
-                    parsed.pseudos[pi++] = { key: match[7], value: match[8] };
                 }
                 // combinators
                 else if (match[9]) {
@@ -195,40 +127,6 @@
                 }
 
                 return ret;
-            },
-            '>': function(tag, ctx, ret) {
-                var nodes, n, i = 0, len = ret.length;
-                nodes = ctx.getElementsByTagName(tag);
-
-                while (n = nodes[i++]) {
-                    n.parentNode == ctx && (ret[len++] = n);
-                }
-
-                return ret;
-            },
-            '+': function(tag, ctx, ret, locate) {
-                var len = ret.length;
-                while (ctx = ctx.nextSibling) {
-                    if (ctx.nodeType == 1) {
-                        ctx.tagName == tag && locate(ctx) && (ret[len++] = ctx);
-                        break;
-                    }
-                }
-
-                return ret;
-            },
-            '~': function(tag, ctx, ret, locate) {
-                var len = ret.length;
-                while (ctx = ctx.nextSibling) {
-                    if (ctx.nodeType == 1) {
-                        if (!locate(ctx)) {
-                            break;
-                        }
-                        ctx.tagName == tag && (ret[len++] = ctx);
-                    }
-                }
-
-                return ret;
             }
         };
 
@@ -238,35 +136,6 @@
                 while (node = node.parentNode) {
                     // fixed a bug of IE6 with rising installed
                     if (node == cxt || (cxt == document && node.documentElement)) {
-                        return true;
-                    }
-                }
-
-                return false;
-            },
-
-            '>': function(node, cxt) {
-                return node.parentNode == cxt;
-            },
-
-            '+': function(node, cxt) {
-                while (node = node.previousSibling) {
-                    if (node.nodeType != 1) {
-                        continue;
-                    }
-                    if (node == cxt) {
-                        return true;
-                    }
-                    else if (node.tagName == node.tagName) {
-                        return false;
-                    }
-                }
-                return false;
-            },
-
-            '~': function(node, cxt) {
-                while (n = n.previousSibling) {
-                    if (n == cxt) {
                         return true;
                     }
                 }
@@ -332,193 +201,6 @@
             }
         };
 
-        // cache parsed nth expression and nth nodes
-        var nthCache = {}, nthNodesCache = {};
-
-        // parse nth expression
-        function parseNth(expr) {
-            if (nthCache[expr]) {
-                return nthCache[expr];
-            }
-
-            var m, a, b;
-
-            m = expr.match(nthRE);
-            switch (m[4]) {
-                case 'even':
-                    a = 2;
-                    b = 0;
-                    break;
-                case 'odd':
-                    a = 2;
-                    b = 1;
-                    break;
-                default:
-                    a = parseInt(m[1], 10);
-                    a = isNaN(a) ? (m[2] ? 1 : 0) : a;
-                    b = parseInt(m[3], 10);
-                    isNaN(b) && (b = 0);
-                    break;
-            }
-
-            return (nthCache[expr] = { a: a, b: b });
-        }
-
-        // whether is nth-child or nth-type
-        function isNth(node, parsed, sibling, tag) {
-            var uid, puid, pos, cache, count = 1;
-
-            uid = $.getUid(node);
-            puid = $.getUid(node.parentNode);
-
-            cache = nthNodesCache[puid] || (nthNodesCache[puid] = {});
-
-            if (!cache[uid]) {
-                while ((node = node[sibling])) {
-                    if (node.nodeType != 1 || (tag && node.tagName != tag)) continue;
-
-                    pos = cache[$.getUid(node)];
-
-                    if (pos) {
-                        count = pos + count;
-                        break;
-                    }
-                    count++;
-                }
-                cache[uid] = count;
-            }
-
-            return parsed.a ? cache[uid] % parsed.a == parsed.b : parsed.b == cache[uid];
-        }
-
-        // whether is only child or type
-        function isOnly(node, tag) {
-            var prev = node;
-            while ((prev = prev.previousSibling)) {
-                if (prev.nodeType === 1 && (!tag || prev.tagName == tag)) return false;
-            }
-            var next = node;
-            while ((next = next.nextSibling)) {
-                if (next.nodeType === 1 && (!tag || next.tagName == tag)) return false;
-            }
-            return true;
-        }
-
-        var pseudo = {
-            'root': function(node) {
-                return node === node.ownerDocument.documentElement;
-            },
-            'nth-child': function(node, parsed) {
-                return (parsed.a == 1 && !parsed.b) ? true : isNth(node, parsed, 'previousSibling', false);
-            },
-            'nth-last-child': function(node, parsed) {
-                return (parsed.a == 1 && !parsed.b) ? true : isNth(node, parsed, 'previousSibling', false);
-            },
-            'nth-of-type': function(node, parsed) {
-                return isNth(node, parsed, 'previousSibling', node.tagName);
-            },
-            'nth-last-of-type': function(node, parsed) {
-                return isNth(node, parsed, 'nextSibling', node.tagName);
-            },
-            'first-child': function(node) {
-                var sibling = node.parentNode.firstChild;
-                while (sibling.nodeType != 1) {
-                    sibling = sibling.nextSibling;
-                }
-                return node === sibling;
-            },
-            'last-child': function(node) {
-                while ((node = node.nextSibling)) {
-                    if (node.nodeType === 1) return false;
-                }
-                return true;
-            },
-            'first-of-type': function(node) {
-                var sibling = node.parentNode.firstChild, tagName = node.tagName;
-                while (sibling.nodeType != 1 || sibling.tagName != tagName) {
-                    sibling = sibling.nextSibling;
-                }
-                return node === sibling;
-            },
-            'last-of-type': function(node) {
-                var tagName = node.tagName;
-                while ((node = node.nextSibling)) {
-                    if (node.nodeType == 1 && node.tagName == tagName) return false;
-                }
-                return true;
-            },
-            'only-child': function(node) {
-                return isOnly(node);
-            },
-            'only-of-type': function(node) {
-                return isOnly(node, node.tagName);
-            },
-            'empty': function(node) {
-                return !node.firstChild;
-            },
-            'parent': function(node) {
-                return !!node.firstChild;
-            },
-            //'link': function() { return; },
-            //'visited': function() { return; },
-            //'active': function() { return; },
-            //'hover': function() { return; },
-            //'focus': function() { return; },
-            //'target': function() { return; },
-            //'lang': function() { return; },
-            'enabled': function() {
-                return node.disabled === false && node.type !== "hidden";
-            },
-            'disabled': function() {
-                return node.disabled === true;
-            },
-            'checked': function(node) {
-                return node.checked === true;
-            },
-            'selected': function(node) {
-                // Accessing this property makes selected-by-default
-                // options in Safari work properly
-                node.parentNode.selectedIndex;
-                return node.selected === true;
-            },
-            'visible': function(node) {
-                return node.offsetWidth > 0 || node.offsetHeight > 0;
-            },
-            'hidden': function(node) {
-                return node.offsetWidth === 0 || node.offsetHeight === 0;
-            },
-            //'first-line': function() { return; },
-            //'first-letter': function() { return; },
-            //'before': function() { return; },
-            //'after': function() { return; },
-            'not': function(node, value) {
-                return !testNode(node, value);
-            },
-            'contains': function(node, re) {
-                return re.test(node.innerText || node.textContent || '');
-            },
-            'odd': function(node) {
-                return;
-            },
-            'even': function(node) {
-                return;
-            }
-        };
-        pseudo.nth = pseudo['nth-child'];
-        pseudo.index = pseudo['nth-child'];
-
-        var pseudoRE = {
-            't': function(value) {      // not pseudo class
-                return parse(value);
-            },
-            'n': function(value) {      // contains and lang pseudo class
-                return new RegExp(escapeRegExp(value));
-            },
-            'h': function(value) {      // nth pseduo class
-                return parseNth(value);
-            }
-        };
-
         // filters
         var filter = {
             klass: function(nodes, name) {
@@ -550,19 +232,7 @@
                 }
 
                 return results;
-            },
-
-            pseudo: function(nodes, pdo) {
-                var parsed = pdo.value, key = pdo.key, n, i = 0, results = [], r = 0;
-
-                parsed && (parsed = pseudoRE[key.charAt(2)](parsed));
-
-                while (n = nodes[i++]) {
-                    pseudo[key](n, parsed) && (results[r++] = n);
-                }
-
-                return results;
-            }
+            } 
         };
 
         // query sub selector
@@ -574,8 +244,7 @@
             id = selector.id,
             tag = selector.tag,
             classes = selector.classes,
-            attributes = selector.attributes,
-            pseudos = selector.pseudos;
+            attributes = selector.attributes;
 
             // if id is supplied
             if (id) {
@@ -614,13 +283,6 @@
                 // filter nodes by attributes
                 while (item = attributes[i++]) {
                     ret = filter.attribute(ret, item);
-                }
-            }
-
-            if (pseudos.length > (i = 0)) {
-                // filter nodes by pseudos
-                while (item = pseudos[i++]) {
-                    ret = filter.pseudo(ret, item);
                 }
             }
 
@@ -686,16 +348,6 @@
                         }
                     }
                     else if (key == null) {
-                        return false;
-                    }
-                }
-            }
-
-            if (parsed.pseudos.length > (i = 0)) {
-                // filter node by pseudos
-                while (item = parsed.pseudos[i++]) {
-                    (pattern = item.value) && (pattern = pseudoRE[item.key.charAt(2)](pattern));
-                    if (!pseudo[item.key](node, pattern)) {
                         return false;
                     }
                 }

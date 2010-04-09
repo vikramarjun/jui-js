@@ -11,7 +11,7 @@
 
 (function($) {
     // add to loaded module-list
-    $.register('fx.transitions', '1.0.0.0');
+    //$.register('fx.transitions', '1.0.0.0');
 
     /*
     * Easing Equations by Robert Penner

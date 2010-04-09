@@ -5,7 +5,19 @@
 * */
 (function($) {
     // add to loaded module-list
-    $.register('browser', '1.0.0.0');
+    //$.register('browser', '1.0.0.0');
+    ///<class>
+    ///    <name>$.browser</name>
+    ///    <summary>
+    ///        浏览器甄别类。
+    ///        $.browser.ie     // Internet Explorer版本号
+    ///        $.browser.opera  // Opera版本号
+    ///        $.browser.gecko  // Mozilla Firefox版本号
+    ///        $.browser.webkit // Apple Safari & Google Chrome版本号
+    ///        $.browser.mobile // Mobile平台版本号
+    ///    </summary>
+    ///    <include>$</include>
+    ///</class>
 
     // browser detection
     $.browser = {};      // user agents

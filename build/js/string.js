@@ -5,10 +5,22 @@
 * */
 (function($) {
     // add to loaded module-list
-    $.register('string', '1.0.0.0');
+    //$.register('string', '1.0.0.0');
+
+    ///<class>
+    ///    <name>String</name>
+    ///    <summary>
+    ///        String扩展类，提供常见的方法。
+    ///    </summary>
+    ///    <include>$</include>
+    ///</class>
 
     String.implement({
         toCamelCase: function() {
+            ///<summary>
+            /// camel化字符串，把连接符（-）后的字母大写。
+            ///</summary>
+            ///<returns type="STRING" />
             return this.replace(/-\D/g, function(match) {
                 return match.charAt(1).toUpperCase();
             });
@@ -67,12 +79,16 @@
         },
 
         escapeRegExp: function() {
+            ///<summary>
+            /// 对字符中的正则表达式字符进行转义。
+            ///</summary>
+            ///<returns type="STRING" />
             return this.replace(/([-.*+?^${}()|[\]\/\\])/g, '\\$1');
         },
 
         escapeHTML: function() {
             ///<summary>
-            /// 对字符中的HTML代码进行转义
+            /// 对字符中的HTML代码进行转义。
             ///</summary>
             ///<returns type="STRING" />
             var htmlChars = ['&~&amp;', '<~&lt;', '>~&gt;'], r, s = this;

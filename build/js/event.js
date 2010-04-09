@@ -5,7 +5,7 @@
 * */
 (function($) {
     // add to loaded module-list
-    $.register('event', '1.0.0.0');
+    //$.register('event', '1.0.0.0');
 
     var keys = {
         '8': 'backspace',
@@ -19,8 +19,15 @@
         '39': 'right',
         '46': 'delete'
     };
-
+    ///<class>
+    ///    <name>$.Event</name>
+    ///    <summary>
+    ///         提供封装好Event对象。
+    ///    </summary>
+    ///    <include>$</include>
+    ///</class>
     var Event = function(event) {
+
         if (event.$family === 'event') {
             return event;
         }
@@ -91,10 +98,18 @@
 
     Event.implement({
         stop: function() {
+            ///<summary>
+            /// 终止所有类型事件传播，返回当前对象。
+            ///</summary>
+            ///<returns type="$.Event" />
             return this.stopPropagation().preventDefault();
         },
 
         stopPropagation: function() {
+            ///<summary>
+            /// 终止事件冒泡，返回当前对象。
+            ///</summary>
+            ///<returns type="$.Event" />
             if (this.event.stopPropagation) {
                 this.event.stopPropagation();
             }
@@ -106,6 +121,10 @@
         },
 
         preventDefault: function() {
+            ///<summary>
+            /// 终止事件传播，返回当前对象。
+            ///</summary>
+            ///<returns type="$.Event" />
             if (this.event.preventDefault) {
                 this.event.preventDefault();
             }
