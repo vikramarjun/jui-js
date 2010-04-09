@@ -1,11 +1,11 @@
-﻿/**
+﻿ /**
  *
  * Script:
  *   jui.js
  *   JUI(JavaScript User Interface) JavaScript Library v1.0.0
  *
  * Version: 
- *   1.0.0
+ *   1.0.1
  *
  * License:
  *	MIT-style license.
@@ -31,16 +31,14 @@
 	_$ = window.$,
     // global uid
 	_uid = 1,
-    // loaded modules
-    _modules = {},
-    // modules and scripts url
-	_modList = {
-	    'browser': 'browser.js',
-	    'element': 'element.js',
-	    'selector': 'selector.js',
-	    'string': 'string.js',
-	    'array': 'array.js'
-	},
+
+    ///<class>
+    ///    <name>$.Window</name>
+    ///    <summary>
+    ///         核心类，提供基础框架和方法。
+    ///    </summary>
+    ///    <include></include>
+    ///</class>
 
     $ = JUI = window.JUI = window.$ = function(selector, context) {
         ///<summary>
@@ -49,7 +47,11 @@
         ///<param name="selector" type="String">选择器</param>
         ///<param name="context" type="$.Element">要查找的上下文</param>
         ///<returns type="$.Element" />
-        if (_modules['element']) {
+        if (selector == window) {
+            return $.Window ? new $.Window(selector) : window;
+        }
+
+        if ($.Element) {
             return new $.Element(selector, false);
         }
 
@@ -110,7 +112,10 @@
         },
 
         implement: function(objects, properties) {
-            for (var i = 0, l = objects.length; i < l; i++) objects[i].implement(properties);
+            var l = objects.length;
+            while (l--) {
+                objects[l].implement(properties);
+            }
         }
     };
 
@@ -140,6 +145,11 @@
     *    the object you want to do type test
     * */
     $.type = function(obj) {
+        ///<summary>
+        /// 获取对象的方法
+        ///</summary>
+        ///<param name="style" type="Object">对象</param>
+        ///<returns type="string" />
         if (obj == undefined) return false;
         if (obj.$family) return (obj.$family == 'number' && !isFinite(obj)) ? false : obj.$family;
         if (obj.nodeName) {
@@ -169,6 +179,10 @@
     *    true to resolve JUI confilict
     * */
     $.noConfilict = function() {
+        ///<summary>
+        /// 使JUI与其它不冲突
+        ///</summary>
+        ///<returns type="$" />
         window.$ = _$;
 
         return this;
@@ -178,6 +192,12 @@
     * 类继承的实现
     * */
     $.extend = function(child, parent) {
+        ///<summary>
+        /// 类继承的实现
+        ///</summary>
+        ///<param name="child" type="Object">子对象</param>
+        ///<param name="parent" type="Object">父对象</param>
+        ///<returns type="Object" />
         if (!parent) {
             throw 'Failed! Inherit from a null object';
         }
@@ -199,58 +219,14 @@
     };
 
     /**
-    * register loaded modules
-    *
-    *  @module:
-    *     module name
-    *  @version:
-    *     module version
-    * */
-    $.register = function(module, version) {
-        _modules[module] = version;
-    }
-
-    /**
-    * load external script
-    *
-    *  @url:
-    *     script url
-    * */
-    function loadScripts(url) {
-        var script = document.createElement("script");
-        script.type = "text/javascript";
-        script.src = url;
-        document.getElementsByTagName("head")[0].appendChild(script);
-    }
-
-    /**
-    * load script of specific module 
-    *
-    * @modules:
-    *   module name or an array list contains names of modules
-    * */
-    $.requires = function() {
-        var i = 0, mod;
-        while (mod = arguments[i++]) {
-            (!_modules[mod]) && loadScripts(_modList[mod]);
-        }
-    };
-
-    /**
-    * judge if the module is loaded
-    *
-    * @module:
-    *   module name
-    * */
-    $.loaded = function(module) {
-        return _modules[module] !== null;
-    };
-
-    /**
     * return current timestamp
     *
     * */
     $.now = function() {
+        ///<summary>
+        /// 返回当前时间的Time Stamp
+        ///</summary>
+        ///<returns type="Number" />
         return +new Date;
     };
 
@@ -258,7 +234,13 @@
     * return a global unique id of an element
     *
     * */
+
     $.getUid = (window.ActiveXObject) ? function(node) {
+        ///<summary>
+        /// 给一个节点返回一个唯一ID
+        ///</summary>
+        ///<param name="module" type="node">节点</param>
+        ///<returns type="int" />
         return (node[$.expando] || (node[$.expando] = [_uid++]))[0];
     } : function(node) {
         return node[$.expando] || (node[$.expando] = _uid++);

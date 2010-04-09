@@ -5,7 +5,7 @@
  * */
 (function($) {
     // add to loaded module-list
-    $.register('fx', '1.0.0.0');
+    //$.register('fx', '1.0.0.0');
 
     function mergeOptions(o, n) {
         for (var p in n) {
@@ -66,11 +66,10 @@
             _options = mergeOptions(_options, options);
             _period = Math.round(1000 / _options.fps);
 
-            if (_options.effect && $.loaded('fx.transitions')) {
+            if (_options.effect && $.Fx.Transitions) {
                 var data = _options.effect.split(':');
                 _transition = $.Fx.Transitions;
                 _transition = _transition[capitalize(data[0])];
-                console.log(_transition);
                 if (data[1]) {
                     _transition = _transition['ease' + capitalize(data[1]) + (data[2] ? capitalize(data[2]) : '')];
                 }

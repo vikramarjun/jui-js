@@ -17,7 +17,7 @@
 * */
 (function($) {
     // add to loaded module-list
-    $.register('drag.resize', '1.0.0.0');
+    //$.register('drag.resize', '1.0.0.0');
 
     function mergeOptions(o, n) {
         for (var p in n) {
@@ -26,8 +26,35 @@
 
         return o;
     }
+	///<class>
+    ///    <name>$.Drag.Resize</name>
+    ///    <summary>
+    ///         拖动变形类
+    ///    </summary>
+    ///    <include>$|JUI|Core, $.Element, $.Event, $.Drag</include>
+    ///</class>
+
 
     var Resize = function(dom, options) {
+		///<summary>
+        /// 构造函数，创建一个新的$.Resize对象。
+        ///</summary>
+        ///<param name="dom" type="Object">要创建的Dom或者选择器</param>
+        ///<param name="options" type="Object">
+        ///配置[可选]
+        /// {
+		///		onStart:		[function,		当变形开始时要调用的方法][可选],
+        ///		onSnap:			[function,		当变形捕捉到时要调用的方法][可选],
+        ///		onDrag:			[function,		当变形时要调用的方法][可选],
+        ///		onStop:			[function,		当变形停止时要调用的方法][可选],
+        ///		limit:			[object,		是否有变形范围的限制，例：{ x: [, 400] }][可选，false],
+        ///		handle:			[object,		变形的控制区域(dom)][可选，false],
+        ///		modifiers:		[object,		变形时需要改变的项目][可选，{ x: 'width', y: 'height' }]
+        /// }
+		///</param>
+		///<include>$|JUI|Core, $.element, $.event, $.drag</include>
+        ///<returns type="$.Resize" />
+
         var _dom = $(dom),
             _options = {
                 // events

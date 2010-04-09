@@ -5,7 +5,7 @@
 * */
 (function($) {
     // add to loaded module-list
-    $.register('class', '1.0.0.0');
+    //$.register('class', '1.0.0.0');
 
     // 当前是否处于创建类的阶段
     var initializing = false;

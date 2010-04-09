@@ -5,7 +5,7 @@
 * */
 (function ($) {
     // add to loaded module-list
-    $.register('customevent', '1.0.0.0');
+    //$.register('customevent', '1.0.0.0');
 
     var CustomEvent = function (name) {
         this.events = [];

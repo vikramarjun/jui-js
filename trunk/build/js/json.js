@@ -5,7 +5,7 @@
 * */
 (function($) {
     // add to loaded module-list
-    $.register('json', '1.0.0.0');
+    //$.register('json', '1.0.0.0');
 
     var special = { '\b': '\\b', '\t': '\\t', '\n': '\\n', '\f': '\\f', '\r': '\\r', '"': '\\"', '\\': '\\\\' };
 
@@ -13,13 +13,30 @@
         return special[chr] || '\\u00' + Math.floor(chr.charCodeAt() / 16).toString(16) + (chr.charCodeAt() % 16).toString(16);
     }
 
+    ///<class>
+    ///    <name>$.JSON</name>
+    ///    <summary>
+    ///        JSON工具类
+    ///    </summary>
+    ///    <include>$</include>
+    ///</class>
     var JSON = {
         decode: function(s) {
+            ///<summary>
+            /// 将JSON字符串解码为js对象
+            ///</summary>
+            ///<param name="s" type="string">JSON字符串</param>
+            ///<returns type="object" />
             if ($.type(s) != 'string' || !s.length) return null;
             return eval('(' + s + ')');
         },
 
         encode: function(obj) {
+            ///<summary>
+            /// 将js对象编码为JSON字符串
+            ///</summary>
+            ///<param name="obj" type="string">js对象</param>
+            ///<returns type="string" />
             var s = [];
             switch ($.type(obj)) {
                 case 'undefined':
