@@ -45,7 +45,7 @@
             ///     domain:     [string,    域][可选],
             ///     path:       [string,    路径][可选],
             ///     duration:   [int,       过期时间(单位/天)][可选],
-            ///     encode:     [boolean,   是否对value进行URI解码][可选]
+            ///     encode:     [boolean,   是否对value进行URI编码][可选]
             /// }
             ///</param>
             ///<returns type="$.Cookie" />
@@ -75,10 +75,11 @@
             ///     domain:     [string,    域][可选],
             ///     path:       [string,    路径][可选],
             ///     duration:   [int,       过期时间(单位/天)][可选],
-            ///     encode:     [boolean,   是否对value进行URI解码][可选]
+            ///     decode:     [boolean,   是否对value进行URI解码][可选]
             /// }
             ///</param>
             ///<returns type="String">返回读取的值，如果不存在，则返回null.</returns>
+			mergeOptions(options);
             var value = _options.document.cookie.match('(?:^|;)\\s*' + key.replace(/([-.*+?^${}()|[\]\/\\])/g, '\\$1') + '=([^;]*)');
             // 默认decode，否则不decode
             if (_options.decode) {

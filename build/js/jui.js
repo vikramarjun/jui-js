@@ -69,8 +69,10 @@
             var afterImplement = options.afterImplement || function() { };
 
             object.constructor = this.initialize;
-            object.$family = name.toLowerCase();
-            if (legacy && initialize) object.prototype = legacy.prototype;
+            object.$family = { name: name.toLowerCase() };
+            if (legacy && initialize) {
+                object.prototype = legacy.prototype;
+            }
             object.prototype.constructor = object;
             object.prototype.$family = object.$family;
 
@@ -151,7 +153,7 @@
         ///<param name="style" type="Object">对象</param>
         ///<returns type="string" />
         if (obj == undefined) return false;
-        if (obj.$family) return (obj.$family == 'number' && !isFinite(obj)) ? false : obj.$family;
+        if (obj.$family) return (obj.$family.name == 'number' && !isFinite(obj)) ? false : obj.$family.name;
         if (obj.nodeName) {
             switch (obj.nodeType) {
                 case 1: return 'element';
@@ -162,8 +164,6 @@
             else if (obj.item) return 'collection';
         }
         return typeof obj;
-
-        //return obj.$family ? obj.$family : typeof obj;
     };
 
     /**

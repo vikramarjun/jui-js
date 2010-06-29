@@ -8,7 +8,7 @@
     //$.register('loader', '1.0.0.0');
 
     var loading = {}, _source, cbIndex = 1, cbPrefix = 'jui_cb_';
-	///<class>
+    ///<class>
     ///    <name>$.Loader</name>
     ///    <summary>
     ///         载入类
@@ -28,7 +28,7 @@
     });
 
     function load(options) {
-		
+
         options = options || _source || {};
 
         var src, charset, type = 'js', callback = $.empty, useParam, bind, cache;
@@ -104,23 +104,23 @@
 
     Loader.implement({
         load: function(list) {
-		///<summary>
-        /// 载入内容
-        ///</summary>
-        ///<param name="list" type="Array">
-		/// 内容数组
-        ///	每项内容配置[可选]
-        /// {
-		///		src:			[string,		内容地址],
-        ///		type:			[string,		内容类型][可选，js],
-        ///		charset:		[string,		内容编码][可选],
-        ///		callback:		[function,		回调函数][可选],
-        ///		bind:			[object,		绑定对象][可选，使用必须有callback],
-        ///		useParam:		[boolean,		是否使用参数][可选，false],
-        ///		cache:			[boolean,		是否缓存内容][可选，false],
-        /// }
-		///</param>
-        ///<returns type="$.Loader" />
+            ///<summary>
+            /// 载入内容
+            ///</summary>
+            ///<param name="list" type="Array">
+            /// 内容数组
+            ///	每项内容配置[可选]
+            /// {
+            ///		src:			[string,		内容地址],
+            ///		type:			[string,		内容类型][可选，js],
+            ///		charset:		[string,		内容编码][可选],
+            ///		callback:		[function,		回调函数][可选],
+            ///		bind:			[object,		绑定对象][可选，使用必须有callback],
+            ///		useParam:		[boolean,		是否使用参数][可选，false],
+            ///		cache:			[boolean,		是否缓存内容][可选，false],
+            /// }
+            ///</param>
+            ///<returns type="$.Loader" />
             if (!list) {
                 list = [_source];
             }
@@ -136,22 +136,22 @@
         },
 
         chain: function(list) {
-		///<summary>
-        /// 链式载入内容(按顺序加载)
-        ///</summary>
-        ///<param name="list" type="Array">
-		/// 内容数组
-        ///	每项内容配置[可选]
-        /// {
-		///		src:			[string,		内容地址],
-        ///		type:			[string,		内容类型][可选，js],
-        ///		charset:		[string,		内容编码][可选],
-        ///		callback:		[function,		回调函数][可选],
-        ///		bind:			[object,		绑定对象][可选，使用必须有callback],
-        ///		useParam:		[boolean,		是否使用参数][可选，false],
-        ///		cache:			[boolean,		是否缓存内容][可选，false],
-        /// }
-		///</param>
+            ///<summary>
+            /// 链式载入内容(按顺序加载)
+            ///</summary>
+            ///<param name="list" type="Array">
+            /// 内容数组
+            ///	每项内容配置[可选]
+            /// {
+            ///		src:			[string,		内容地址],
+            ///		type:			[string,		内容类型][可选，js],
+            ///		charset:		[string,		内容编码][可选],
+            ///		callback:		[function,		回调函数][可选],
+            ///		bind:			[object,		绑定对象][可选，使用必须有callback],
+            ///		useParam:		[boolean,		是否使用参数][可选，false],
+            ///		cache:			[boolean,		是否缓存内容][可选，false],
+            /// }
+            ///</param>
             if ($.type(list) != 'array') {
                 list = Array.prototype.slice.call(arguments, 0);
             }
@@ -168,10 +168,10 @@
         },
 
         cancel: function(src) {
-			///<summary>
-			/// 取消正在载入的内容
-			///</summary>
-			///<param name="src" type="String">SRC</param>
+            ///<summary>
+            /// 取消正在载入的内容
+            ///</summary>
+            ///<param name="src" type="String">SRC</param>
             if (!loading[src]) {
                 return;
             }
