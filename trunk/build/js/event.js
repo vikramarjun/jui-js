@@ -19,6 +19,7 @@
         '39': 'right',
         '46': 'delete'
     };
+    
     ///<class>
     ///    <name>$.Event</name>
     ///    <summary>

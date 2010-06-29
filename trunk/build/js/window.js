@@ -103,6 +103,6 @@
         }
     });
 
-    new Window(window);
+    //new Window(window);
     $.Window = Window;
 })(JUI);

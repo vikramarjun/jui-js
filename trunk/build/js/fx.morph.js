@@ -14,7 +14,7 @@
     //$.register('fx.morph', '1.0.0.0');
 
     ///<class>
-    ///    <name>$.Morph</name>
+    ///    <name>$.Fx.Morph</name>
     ///    <summary>
     ///         动画操作类。
     ///    </summary>
@@ -23,13 +23,13 @@
 
     var Morph = function(dom, options) {
         ///<summary>
-        /// 构造函数，创建一个新的$.Morph对象。
+        /// 构造函数，创建一个新的$.Fx.Morph对象。
         ///</summary>
         ///<param name="dom" type="Object">要创建的Dom或者选择器</param>
         ///<param name="options" type="Object">
         ///配置[可选]
         /// {
-		///		onStart:		[function,		当动画开始时要调用的方法][可选],
+        ///		onStart:		[function,		当动画开始时要调用的方法][可选],
         ///		onComplete:		[function,		当动画完成时要调用的方法][可选],
         ///		onCancel:		[function,		当动画取消时要调用的方法][可选],
         ///		onEnterFrame:	[function,		当动画改变时要调用的方法][可选],
@@ -39,7 +39,7 @@
         ///		link:			[string,		元素上的链接][可选，未实现(ignore)],
         ///		effect:			[string,		动画效果，例："Quad:in:out"][可选，(false)],
         /// }
-		///</param>
+        ///</param>
         ///<returns type="$.Morph" />
 
         var _from = {}, _change = {}, _dom = $(dom);
@@ -48,11 +48,11 @@
         this.constructor.superclass.constructor.apply(this, [options]);
 
         this.change = function(pos) {
-			///<summary>
+            ///<summary>
             /// 立即改变样式
             ///</summary>
             ///<param name="pos" type="string">样式的改变量</param>
-            
+
             ///<returns type="undefined" />
             for (var p in _from) {
                 _dom.setStyle(p, Math.round(_from[p] + pos * _change[p]));
@@ -60,7 +60,7 @@
         };
 
         this.start = function(styles, options) {
-			///<summary>
+            ///<summary>
             /// 启动动画
             ///</summary>
             ///<param name="styles" type="object">要改变的样式，例：{ 'width': [200, 800], 'height': [20, 200] }</param>

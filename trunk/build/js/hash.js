@@ -54,7 +54,7 @@
     Hash.implement({
         add: function(key, value) {
             ///<summary>
-            /// 增加一个元素（键名不存在则新建）
+            /// 增加或更新一个元素
             ///</summary>
             ///<param name="key" type="object">
 			/// 1 (string) 键名
@@ -73,7 +73,7 @@
 
         include: function(key, value) {
 			///<summary>
-            /// 增加一个元素（键名不存在则放弃）
+            /// 增加一个元素（键名存在则放弃）
             ///</summary>
             ///<param name="key" type="object">
 			/// 1 (string) 键名
@@ -104,7 +104,6 @@
             ///<summary>
             /// 清除所有元素
             ///</summary>
-            ///<param name="key" type="object">KEY</param>
             ///<returns type="$.Hash" />
             for (var k in this) {
                 delete this[k];
@@ -114,7 +113,7 @@
 
         extend: function(obj) {
 			///<summary>
-            /// 合并Hash（键名不存在则放弃）
+            /// 合并Hash（键名存在则放弃）
             ///</summary>
             ///<param name="obj" type="object">OBJECT</param>
             ///<returns type="$.Hash" />

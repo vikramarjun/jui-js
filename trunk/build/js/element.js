@@ -365,27 +365,28 @@
             ///<returns type="$.Element" />
 
             if (style == 'opacity') {
-                value = parseFloat(value);
                 if (support.opacity) {
-                    this.style.opacity = value;
+                    this.style.opacity = value / 100;
                 }
                 else {
                     // Set the alpha filter to set the opacity
-                    this.style.filter = (this.style.filter || '').replace(/alpha\([^)]*\)/, '') + (value + '' == 'NaN' ? '' : 'alpha(opacity=' + value * 100 + ')');
+                    this.style.filter = (this.style.filter || '').replace(/alpha\([^)]*\)/, '') + (value + '' == 'NaN' ? '' : 'alpha(opacity=' + value + ')');
                     // IE has trouble with opacity if it does not have layout
                     // Force it by setting the zoom level
                     this.zoom = 1;
                 }
-                if (opacity == 0) {
-                    if (this.style.visibility != 'hidden') {
-                        this.style.visibility = 'hidden';
-                    }
+                /*
+                if (value == 0) {
+                if (this.style.visibility != 'hidden') {
+                this.style.visibility = 'hidden';
+                }
                 }
                 else {
-                    if (this.style.visibility != 'visible') {
-                        this.style.visibility = 'visible';
-                    }
+                if (this.style.visibility != 'visible') {
+                this.style.visibility = 'visible';
                 }
+                }
+                //*/
                 return;
             }
 
@@ -423,10 +424,10 @@
             ///<returns type="string" />
             if (style == 'opacity') {
                 if (support.opacity) {
-                    return this.style.opacity;
+                    return (this.style.opacity == '') ? 100 : this.style.opacity * 100;
                 }
                 else {
-                    return this.style.filter && this.style.filter.indexOf('opacity=') >= 0 ? (parseFloat(this.style.filter.match(/opacity=([^)]*)/)[1]) / 100) + '' : '';
+                    return this.style.filter && this.style.filter.indexOf('opacity=') >= 0 ? parseFloat(this.style.filter.match(/opacity=([^)]*)/)[1]) : 100;
                 }
             }
 

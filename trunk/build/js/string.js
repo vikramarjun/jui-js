@@ -140,12 +140,12 @@
                 var c = b.split(':');
                 var d = c[0].split('|');
                 if (d.length == 1) {
-                    if (d[0] in obj) return c[1] ? obj[d[0]].truncate(c[1].toInt()) : obj[d[0]];
+                    if (d[0] in obj) return c[1] ? obj[d[0]].truncate(parseInt(c[1])) : obj[d[0]];
                 } else {
                     var f = d[1].trim();
                     if ((f in funs) && (d[0] in obj)) {
                         var r = funs[f](obj[d[0]]);
-                        return c[1] ? r.truncate(c[1].toInt()) : r;
+                        return c[1] ? r.truncate(parseInt(c[1])) : r;
                     }
                 }
                 return a;

@@ -263,7 +263,7 @@
                 return this;
             }
 
-            var i = 0, fns = events[type], fn, ret, self = this;
+            var i = 0, fns = events[type].keys, fn, ret, self = this;
             while (fn = fns[i++]) {
                 ret = function(f) {
                     return function() {
