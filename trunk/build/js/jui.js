@@ -2,10 +2,10 @@
  *
  * Script:
  *   jui.js
- *   JUI(JavaScript User Interface) JavaScript Library v1.0.0
+ *   JUI(JavaScript User Interface) JavaScript Library
  *
  * Version: 
- *   1.0.1
+ *   1.0.2
  *
  * License:
  *	MIT-style license.
@@ -29,7 +29,7 @@
 	_JUI = window.JUI,
     // Map over the $ in case of overwrite
 	_$ = window.$,
-    // global uid
+    // global unique id
 	_uid = 1,
 
     ///<class>
@@ -137,7 +137,7 @@
     })();
 
     $.name = 'jui';         // name of framework
-    $.version = '1.0.0.0';  // current version of framework
+    $.version = '1.0.2.0';  // current version of framework
     $.expando = '_JUI_' + new Date, // name of uid property
 
     /**
@@ -178,12 +178,14 @@
     *  @deep:
     *    true to resolve JUI confilict
     * */
-    $.noConfilict = function() {
+    $.noConfilict = function(deep) {
         ///<summary>
         /// 使JUI与其它不冲突
         ///</summary>
         ///<returns type="$" />
         window.$ = _$;
+
+        deep && (window.JUI = _JUI);
 
         return this;
     };
@@ -234,15 +236,12 @@
     * return a global unique id of an element
     *
     * */
-
-    $.getUid = (window.ActiveXObject) ? function(node) {
+    $.getUid = function(node) {
         ///<summary>
         /// 给一个节点返回一个唯一ID
         ///</summary>
         ///<param name="module" type="node">节点</param>
         ///<returns type="int" />
-        return (node[$.expando] || (node[$.expando] = [_uid++]))[0];
-    } : function(node) {
         return node[$.expando] || (node[$.expando] = _uid++);
     };
 
