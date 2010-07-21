@@ -22,6 +22,9 @@
     <script type="text/javascript" src="../build/js/event.js"></script>
     <script type="text/javascript" src="../build/js/loader.js"></script>
     <script type="text/javascript" src="../build/js/ajax.js"></script>
+    <script type="text/javascript" src="../build/js/fx.js"></script>
+    <script type="text/javascript" src="../build/js/fx.transitions.js"></script>
+    <script type="text/javascript" src="../build/js/fx.morph.js"></script>
 </head>
 <body>
     <div class="green">
@@ -41,6 +44,7 @@
         <div class="green red"></div>
         <a class="hidden" href="#">这个是看不到的链接</a>，本来应该是一行的
     </div>
+    <p><input type="button" onclick="run()" value="RUN" /></p>
     <p></p>
     <div></div>
     <div></div>
@@ -59,6 +63,17 @@
             alert(['js', src, flag]);
         }
 
+        var d = $('div.view')[0];
+        var m = new $.Fx.Morph(d, { effect: 'Quad:in:out' });
+        //var m = new $.Fx.Morph(d);
+        var w = 200;
+        function run() {
+            m.start({ 'width': [200, 800], 'height': [20, 200] });
+        }
+        //var request = new $.Ajax({ url: 'test.js' });
+        //request.send({ data: { a: 1} });
+
+        /*
         var Test = {
             key: 'value',
             headers: function(headers) {
@@ -78,6 +93,7 @@
                 request.send({ data: { a: 1} });
             }
         };
+        //*/
         //Test.go();
         //var loader = new $.Loader({ url: 'test.js', type: 'js', callback: loaded, param: true }).load();
         //var loader = new $.Loader({ url: 'test.js', type: 'js', callback: loaded, param: true }).load();
