@@ -453,30 +453,6 @@
                 var computed = this.getDocument().defaultView.getComputedStyle(this, null);
                 return (computed) ? computed.getPropertyValue([toHyphenCase(style)]) : null;
             }
-            /*
-            * convert to hex
-            *
-            if (result) {
-            result = ''+ result;
-            var color = result.match(/rgba?\([\d\s,]+\)/);
-            if (color) result = result.replace(color[0], color[0].rgbToHex());
-            }
-            //*/
-            /*
-            * minus border and padding in IE & Opera
-            *
-            if (Browser.Engine.presto || (Browser.Engine.trident && !$chk(parseInt(result, 10)))) {
-            if (style.test(/^(height|width)$/)) {
-            var values = (style == 'width') ? ['left', 'right'] : ['top', 'bottom'], size = 0;
-            values.each(function(value) {
-            size += this.getStyle('border-' + value + '-width').toInt() + this.getStyle('padding-' + value).toInt();
-            }, this);
-            return this['offset' + property.capitalize()] - size + 'px';
-            }
-            if ((Browser.Engine.presto) && String(result).test('px')) return result;
-            if (property.test(/(border(.+)Width|margin|padding)/)) return '0px';
-            }
-            //*/
             return result;
         },
 
