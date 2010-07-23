@@ -31,6 +31,8 @@
 	_$ = window.$,
     // global unique id
 	_uid = 1,
+    // name of uid property
+    _expando = '_JUI_' + new Date, 
 
     ///<class>
     ///    <name>$.Window</name>
@@ -138,7 +140,6 @@
 
     $.name = 'jui';         // name of framework
     $.version = '1.0.2.0';  // current version of framework
-    $.expando = '_JUI_' + new Date, // name of uid property
 
     /**
     * return type of an object
@@ -242,7 +243,16 @@
         ///</summary>
         ///<param name="module" type="node">节点</param>
         ///<returns type="int" />
-        return node[$.expando] || (node[$.expando] = _uid++);
+        /*
+         * use an array for a property 
+         * because of the outerHTML bug in IE
+         *
+         * */
+        (window.ActiveXObject) ? function (item) {
+            return (node[_expando] || (node[_expando] = [_uid++]))[0];
+        } : function (item) {
+            return node[_expando] || (node[_expando] = _uid++);
+        }        
     };
 
 })();
