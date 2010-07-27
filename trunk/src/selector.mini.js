@@ -33,11 +33,6 @@
             return (current[uid]) ? null : (current[uid] = true);
         };
 
-        // locate fast
-        function locateFast(node) {
-            return true;
-        }
-
         // escape regular expressions
         function escapeRegExp(text) {
             return text.replace(/[-.*+?^${}()|[\]\/\\]/g, '\\$&');
