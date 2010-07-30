@@ -20,7 +20,7 @@
 
         container = $(container);
 
-        var images = [], tmid = 0, overflow = { auto: 1, scroll: 1 }, noscroll = !!overflow[container.css('overflow').toLowerCase()];
+        var images = [], tmid = 0, overflow = { auto: 1, scroll: 1 }, noscroll = isWindow ? false : !!overflow[container.css('overflow').toLowerCase()];
 
         (function() {
             var img, i = 0, imgs = container.getElements('img'), pos, dim, cpos;
