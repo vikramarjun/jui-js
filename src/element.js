@@ -83,7 +83,8 @@
     var alias = {
         'class': 'className',
         'for': 'htmlFor',
-        'float': support.cssFloat ? 'cssFloat' : 'styleFloat'
+        'float': support.cssFloat ? 'cssFloat' : 'styleFloat',
+        'text': support.innerText ? 'innerText' : 'textContent'
     },
         unit = {
             left: '@px', top: '@px', bottom: '@px', right: '@px',
@@ -492,8 +493,8 @@
             ///</summary>
             ///<param name="style" type="string">属性名</param>
             ///<returns type="string" />
-            var key = alias[attr];
-            var value = (key) ? this[key] : this.getAttribute(attr, 2);
+            var key = alias[attr] || attr;
+            var value = (this[key] === undefined) ? this.getAttribute(attr, 2) : this[key];
             return (bools[attr]) ? !!value : (key) ? value : value || null;
         },
 
@@ -504,9 +505,10 @@
             ///<param name="style" type="string">属性名</param>
             ///<param name="value" type="string">属性值</param>
             ///<returns type="$.Element" />
-            var key = alias[attr];
-            if (key && bools[attr]) value = !!value;
-            key ? this[key] = value : this.setAttribute(attr, '' + value);
+            var key = alias[attr] || attr;
+            if (key && bools[key]) value = !!value;
+            var special = /href|src|style/.test(key);
+            (key in this && !special) ? this[key] = value : this.setAttribute(attr, '' + value);
             return this;
         },
 

@@ -8,11 +8,10 @@
 
     var LazyImage = function(options) {
         options = options || {};
-        var mode = options.mode || 'dynamic',
-        delay = options.delay || 200,
+        var delay = options.delay || 200,
             attr = options.attr || 'lazy-src',
-            doc = options.document || document,
-            container = options.container || document;
+            container = options.container || document,
+            doc = options.document || document;
 
         var isWindow = container == window
                        || container == doc
@@ -21,83 +20,59 @@
 
         container = $(container);
 
-        var images = [], tmid = 0;
+        var images = [], tmid = 0, overflow = { auto: 1, scroll: 1 }, noscroll = !!overflow[container.css('overflow').toLowerCase()];
 
         (function() {
-            if (container.querySelectorAll) {
-                images = $(container.querySelectorAll('img[' + attr + ']'));
-            }
-            else {
-                var img, i = 0, imgs = container.getElementsByTagName('img');
-                while (img = imgs[i++]) {
-                    (img[attr] !== undefined) && images.push(img);
-                }
+            var img, i = 0, imgs = container.getElements('img'), pos, dim, cpos;
+            while (img = imgs[i++]) {
+                (img.attr(attr) !== undefined) && images.push(img);
             }
         })();
 
-        function simpleDelay(view, dr, prop) {
-            var img, i = 0, count = 0, pos, size, vy = view[dr] + view[prop];
+        function load(view) {
+            var img, i = 0, pos, dim, count = 0, start = 0, vy = view.y + view.height, vx = view.x + view.width;
             while (img = images[i]) {
-                img = $(img);
                 pos = img.position();
-                size = img.dimension();
-                if ((view[dr] < pos[dr] + size[prop]) && vy > pos[dr]) {
-                    $.log(img.attr(attr));
+                dim = img.dimension();
+                if (view.x < pos.x + dim.width && vx > pos.x && view.y < pos.y + dim.height && vy > pos.y) {
                     img.src = img.attr(attr);
                     count++;
-                }
-                else if (count) {
-                    break;
-                }
-                i++;
-            }
-            (count > 0) && images.splice(i - count, count);
-        }
-
-        var modeLoader = {
-            'vertical': function(view) {
-                simpleDelay(view, 'y', 'height');
-            },
-            'horizontal': function(view) {
-                simpleDelay(view, 'x', 'width');
-            },
-            'dynamic': function(view) {
-                var img, i = 0, pos, size, count = 0, vy = view.y + view.height, vx = view.x + view.width;
-                while (img = images[i]) {
-                    img = $(img);
-                    pos = img.position();
-                    size = img.dimension();
-                    if (view.x < pos.x + size.width && vx > pos.x && view.y < pos.y + size.height && vy > pos.y) {
-                        img.src = img.attr(attr);
-                        count++;
-                    }
-                    else if (count > 0) {
-                        images.splice(i - count, count);
-                        count = 0;
-                    }
                     i++;
                 }
-                (count > 0) && (images.splice(i - count, count));
+                else if (count > 0) {
+                    images.splice(i -= count, count)
+                    count = 0;
+                }
+                else {
+                    i++;
+                }
             }
-        };
-        modeLoader.y = modeLoader.v = modeLoader.vertical;
-        modeLoader.x = modeLoader.h = modeLoader.horizontal;
+            (count > 0) && images.splice(i - count, count);
+
+            // completed, remove all events
+            if (images.length == 0) {
+                container.removeEvent('scroll', delayLoad);
+                isWindow && container.removeEvent('resize', delayLoad);
+            }
+        }
 
         function startLoad() {
-            var view = isWindow ? window.scrollPos() : { x: container.attr('scrollLeft'), y: container.attr('scrollTop') },
+            var view = isWindow ? window.scrollPos() : (noscroll ? { x: 0, y: 0} : { x: container.scrollLeft, y: container.scrollTop }),
                 size = isWindow ? window.dimension() : container.dimension();
-            (images.length > 0) && modeLoader[mode]({ x: view.x, y: view.y, width: size.width, height: size.height });
+            (images.length > 0) && load({ x: view.x, y: view.y, width: size.width, height: size.height });
         }
 
         function delayLoad() {
             clearTimeout(tmid);
-            setTimeout(startLoad, delay);
+            tmid = setTimeout(startLoad, delay);
         }
 
         container = $(isWindow ? window : container);
         container.addEvent('scroll', delayLoad);
         isWindow && container.addEvent('resize', delayLoad);
+        delayLoad();
 
+        // 强制重新检查，主要用于TAB内容检测
         this.load = function() {
             startLoad();
         };
