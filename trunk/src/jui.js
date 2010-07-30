@@ -32,7 +32,7 @@
     // global unique id
 	_uid = 1,
     // name of uid property
-    _expando = '_JUI_' + new Date, 
+    _expando = '_JUI_' + new Date,
 
     ///<class>
     ///    <name>$.Window</name>
@@ -237,22 +237,10 @@
     * return a global unique id of an element
     *
     * */
-    $.getUid = function(node) {
-        ///<summary>
-        /// 给一个节点返回一个唯一ID
-        ///</summary>
-        ///<param name="module" type="node">节点</param>
-        ///<returns type="int" />
-        /*
-         * use an array for a property 
-         * because of the outerHTML bug in IE
-         *
-         * */
-        (window.ActiveXObject) ? function (item) {
-            return (node[_expando] || (node[_expando] = [_uid++]))[0];
-        } : function (item) {
-            return node[_expando] || (node[_expando] = _uid++);
-        }        
+    $.getUid = (window.ActiveXObject) ? function(node) {
+        return (node[_expando] || (node[_expando] = [_uid++]))[0];
+    } : function(node) {
+        return node[_expando] || (node[_expando] = _uid++);
     };
 
 })();
