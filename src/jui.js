@@ -54,7 +54,7 @@
         }
 
         if ($.Element) {
-            return new $.Element(selector, false);
+            return $.Element(selector, false);
         }
 
         return document.getElementById(selector);
