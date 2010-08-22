@@ -766,7 +766,6 @@
             ///</param>
             ///<returns type="$.Element" />
 
-            el = el.clone();
             if (this.firstChild) {
                 this.insertBefore(el, this.firstChild);
             }
@@ -785,7 +784,7 @@
             ///</param>
             ///<returns type="$.Element" />
 
-            this.appendChild(el.clone());
+            this.appendChild(el);
             return this;
         },
 
@@ -842,7 +841,7 @@
             ///</param>
             ///<returns type="$.Element" />
 
-            this.parentNode.insertBefore(el.clone(), this);
+            this.parentNode.insertBefore(el, this);
             return this;
         },
 
@@ -855,7 +854,6 @@
             ///</param>
             ///<returns type="$.Element" />
 
-            el = el.clone();
             var p = this.parentNode;
             if (this.nextSibling) {
                 p.insertBefore(el, this.nextSibling);
