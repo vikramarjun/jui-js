@@ -3,7 +3,7 @@
 *   xushengs@gmail.com
 *   http://fdream.net/
 * */
-(function($) {
+(function ($) {
     // add to loaded module-list
     //$.register('ajax', '1.0.0.0');
 
@@ -70,7 +70,7 @@
     ///        Ajax类
     ///    </summary>
     ///</class>
-    var Ajax = function(options) {
+    var Ajax = function (options) {
         ///<summary>
         /// 构造函数，创建一个新的Ajax对象，处理所有关于Ajax传输的问题。
         ///</summary>
@@ -149,7 +149,7 @@
     });
 
     Ajax.implement({
-        setHeader: function(name, value) {
+        setHeader: function (name, value) {
             ///<summary>
             /// 设置单个头部，返回当前对象。
             ///</summary>
@@ -161,7 +161,7 @@
             return this;
         },
 
-        setHeaders: function(headers) {
+        setHeaders: function (headers) {
             ///<summary>
             /// 设置头部组，返回当前对象。
             ///</summary>
@@ -172,12 +172,24 @@
             return this;
         },
 
-        send: function(options) {
+        send: function (options) {
             ///<summary>
             /// 发送一个请求，返回当前对象。
             ///</summary>
             ///<param name="options" type="object">内容同$.Ajax构造函数</param>
             ///<returns type="$.Ajax" />
+
+            switch (this.options.link) {
+                case 'chain':
+                    // TODO: implement it
+                    break;
+                case 'ignore':
+                    return;
+                    break;
+                case 'cancel':
+                    this.cancel();
+                    break;
+            }
 
             if ($.type(options) == 'string') {
                 options = { url: options };
@@ -247,6 +259,7 @@
                         clearTimeout(this.timeoutId);
                     }
                     catch (e) { }
+                    this.runing = false;
                     this.status = this.xhr.status;
                     try {
                         if (_options.type == 'header' || _options.type == 'headers') {
@@ -289,15 +302,15 @@
                 _options.onStateChange(this.xhr, url);
             }
 
-            var onStateChange = (function(self) {
-                return function() {
+            var onStateChange = (function (self) {
+                return function () {
                     stateChange.call(self);
                 }
             })(this);
 
             this.xhr.onreadystatechange = onStateChange;
-            this.timeoutId = setTimeout((function(self) {
-                return function() {
+            this.timeoutId = setTimeout((function (self) {
+                return function () {
                     self.timeouted = true;
                     self.xhr.abort();
                     self.running = false;
@@ -315,7 +328,7 @@
             return this;
         },
 
-        get: function(options) {
+        get: function (options) {
             ///<summary>
             /// GET方法发送请求完成后，onSuccess事件返回响应的XMLHttpRequest对象。
             ///</summary>
@@ -325,7 +338,7 @@
             return this;
         },
 
-        post: function(options) {
+        post: function (options) {
             ///<summary>
             /// POST方法发送，请求完成后，onSuccess事件返回响应的XMLHttpRequest对象。
             ///</summary>
@@ -335,7 +348,7 @@
             return this;
         },
 
-        json: function(options) {
+        json: function (options) {
             ///<summary>
             /// JSON请求，请求完成后，onSuccess事件返回响应的JSON对象。
             ///</summary>
@@ -345,7 +358,7 @@
             return this;
         },
 
-        text: function(options) {
+        text: function (options) {
             ///<summary>
             /// 文本请求，请求完成后，onSuccess事件返回响应的文本内容。
             ///</summary>
@@ -355,7 +368,7 @@
             return this;
         },
 
-        xml: function(options) {
+        xml: function (options) {
             ///<summary>
             /// XML请求，请求完成后，onSuccess事件返回响应的XML文档。
             ///</summary>
@@ -365,7 +378,7 @@
             return this;
         },
 
-        headers: function(options) {
+        headers: function (options) {
             ///<summary>
             /// headers请求，请求完成后，onSuccess事件返回响应的headers。
             ///</summary>
@@ -375,7 +388,7 @@
             return this;
         },
 
-        cancel: function() {
+        cancel: function () {
             ///<summary>
             /// 取消当前请求。
             ///</summary>
