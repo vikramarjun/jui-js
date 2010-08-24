@@ -29,7 +29,7 @@
             opacity: (typeof testee.style.opacity) !== 'undefined' ? true : false,
 
             // FF use textContent instead of innerText
-            innerText: (typeof testee.innerText) !== undefined ? true : false,
+            innerText: (typeof testee.innerText) !== 'undefined' ? true : false,
 
             // IE strips leading whitespace when .innerHTML is used
             leadingWhitespace: testee.firstChild && testee.firstChild.nodeType == 3,
@@ -49,7 +49,7 @@
             // This requires a wrapper element in IE
             htmlSerialize: false
         };
-
+        
         if (testee.getElementsByTagName) {
             support.tbody = !!testee.getElementsByTagName("tbody").length;
             support.htmlSerialize = !!testee.getElementsByTagName("link").length;
