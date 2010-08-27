@@ -32,7 +32,7 @@
     // global unique id
 	_uid = 1,
     // name of uid property
-    _expando = '_JUI_' + new Date,
+    _expando = '_JUI_' + (+new Date),
 
     ///<class>
     ///    <name>$.Window</name>
