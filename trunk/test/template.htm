@@ -1,0 +1,55 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>template.js Test Cases</title>
+    <script type="text/javascript" src="../src/jui.js"></script>
+    <script type="text/javascript" src="../src/template.js"></script>
+    <style type="text/css">
+    a{color:#06f;}
+    </style>
+</head>
+<body>
+<div id="tpl_1">
+<!--
+    <ul>
+    <? for(var i=0; i<supplies.length; i++) {
+           if(supplies[i] == 'pptv'){  
+           ?>
+           <li><a href="http://www.pptv.com"><?= supplies[i] ?></a></li>
+        <? }
+           else{ 
+        ?>
+        <li><?='ab_'+supplies[i] ?></li>
+        <? } ?>
+    <? } ?>
+    </ul>
+-->
+</div>
+<script type="text/javascript">
+    var data = { supplies: ['pptv', 'google', 'apple'] };
+    new $.Template({ dom: $('#tpl_1'), startTag: '<?', endTag: '?>' }).render(data);
+</script>
+
+<div id="tpl_2">
+<!--
+    <ul>
+    <-_-|| for(var i=0; i<supplies.length; i++) {
+           if(supplies[i] == 'pptv'){  
+           ||-_->
+           <li><a href="http://www.pptv.com"><-_-||= supplies[i] ||-_-></a></li>
+        <-_-|| }
+           else{ 
+        ||-_->
+        <li><-_-||='ab_'+supplies[i] ||-_-></li>
+        <-_-|| } ||-_->
+    <-_-|| } ||-_->
+    </ul>
+-->
+</div>
+<script type="text/javascript">
+    var data = { supplies: ['pptv', 'google', 'apple'] };
+    new $.Template({ dom: $('#tpl_2'), startTag: '<-_-||', endTag: '||-_->' }).render(data);
+</script>
+</body>
+</html>

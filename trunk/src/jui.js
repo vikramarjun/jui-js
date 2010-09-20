@@ -57,7 +57,7 @@
             return $.Element(selector, false);
         }
 
-        return document.getElementById(selector);
+        return $.type(selector) === 'string' ? document.getElementById(selector.replace(/^#/, '')) : selector;
     };
 
     var Native = {
