@@ -1,0 +1,1 @@
+A light-weight and flexible javascript library.
